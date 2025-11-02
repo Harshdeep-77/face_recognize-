@@ -1,4 +1,4 @@
- import { StyleSheet, Text, View ,Button} from 'react-native'
+ import { StyleSheet, Text, View ,Button,TouchableOpacity} from 'react-native'
  import React from 'react'
  import { NavigationContainer } from '@react-navigation/native';
 
@@ -8,44 +8,103 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
  import RegistrationScreen from './screen/RegistrationScreen';
   import AttendanceScreen from './screen/AttendanceScreen';
 import AttendanceLog from './screen/AttendanceLog';
+import { AttendanceProvider } from './screen/AttendanceContext';
+import { useState } from 'react';
+import LoginScreen from './screen/LoginScreen';
+import WelcomeScreen from './screen/WelcomeScreen';
+import DashboardScreen from './screen/DashboardScreen';
+import UserList from './screen/UserList';
  
+const Stack = createNativeStackNavigator();
 
 const Tab = createMaterialTopTabNavigator();
 
  const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [showDashboard, setShowDashboard] = useState(false);
+    const [showRegst, setShowRegst] = useState(false);
+    const [showUserList, setShowUserList] = useState(false);
    return (
-       <NavigationContainer>
-           <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Face Attendance System</Text>
-      </View>
-      <Tab.Navigator
-        initialRouteName="Registration"
-        screenOptions={{
-          tabBarStyle: { backgroundColor: '#0f172a' },
-          tabBarActiveTintColor: '#10b981',
-          tabBarInactiveTintColor: '#e2e8f0',
-          tabBarIndicatorStyle: { backgroundColor: '#10b981', height: 3 },
-        }}
-      >
-        <Tab.Screen
-          name="Registration"
-          component={RegistrationScreen}
-          options={{ title: 'Register' }}
-        />
-
-        <Tab.Screen
-          name="Attendance"
-          component={AttendanceScreen}
-          options={{ title: 'Attendance' }}
-        />
-         <Tab.Screen
-          name="AttendanceLog"
-          component={AttendanceLog}
-          options={{ title: 'AttendanceLog' }}
-        />
-
-      </Tab.Navigator>
+        
+            <NavigationContainer>
+      <Stack.Navigator>
+        {!isLoggedIn ? (
+      
+          <Stack.Screen name="Login" 
+          options={{
+            title:"",
+             headerStyle: { backgroundColor: "#0f172a" },
+            
+          }}>
+            {props => <LoginScreen {...props} onLogin={() => setIsLoggedIn(true)} />}
+          </Stack.Screen>
+        ) : (
+          <>
+            <Stack.Screen name="Dashboard" component={DashboardScreen} 
+                options={{
+            title: "My Dashboard",  // change title text
+            headerStyle: { backgroundColor: "#3b82f6" },
+            headerTintColor: "#fff",
+            headerTitleStyle: { fontWeight: "700", fontSize: 20 },
+          }}/>
+            <Stack.Screen name="Registration" component={RegistrationScreen}
+           
+          options={{
+            title: "Registration Form", // custom title
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#fff",
+          }} />
+            <Stack.Screen name="UserList" component={UserList} 
+                      options={{
+            title: "👥 User List",
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#fff",
+          }}
+/>
+            <Stack.Screen name="AtendanceScreen" component={AttendanceScreen} 
+                 options={{
+            title: "",
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#fff",
+          }}/>
+          </>
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
+    
+  //    <NavigationContainer>
+  //     {!isLoggedIn ? (
+  //       <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+  //     ) : !showDashboard? (
+  //       <DashboardScreen
+  //         navigation={() => setShowDashboard(true)}
+           
+  //       />
+      
+  //     ): !showRegst ? (
+  //       // 🟦 Dashboard Screen (after login)
+  //       <RegistrationScreen
+  //         navigation={() => setShowRegst(true)}
+  //       />
+      
+  //     ):!showUserList ? (
+  //       // 🟦 Dashboard Screen (after login)
+  //         <UserList
+  //         usernavigation={() => setShowUserList(true)}  
+  //   />
+      
+       
+      
+  //     )  :(
+  //       <>
+          
+  //       </>
+  //  )
+              
+  //     }
+  //   </NavigationContainer>
+   
    )
  };
  

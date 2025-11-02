@@ -6,7 +6,12 @@ import { launchCamera } from 'react-native-image-picker';
 export default function AttendanceScreen({ navigation }) {
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
+  const username = "Harsh Deep";
     // const { markPresent } = useContext(AttendanceContext); 
+const handleMarkAttendance = () => {
+    Alert.alert("Attendance Marked", `Marked attendance for ${username}`);
+    navigation.navigate("Dashboard", { newUser: username });
+  };
 
   // Camera options
   const cameraOptions = {
@@ -40,7 +45,7 @@ export default function AttendanceScreen({ navigation }) {
   // Mark attendance (simulate for now)
   const markAttendance = async () => {
     if (!photo) {
-      Alert.alert('No Image', 'Please capture your face first');
+      Alert.alert('No Image', 'Please capture your face first ');
       return;
     }
 
@@ -49,26 +54,34 @@ export default function AttendanceScreen({ navigation }) {
 
        // Create FormData for photo upload
     const formData = new FormData();
-    formData.append('photo', {
+    formData.append('file', {
       uri: photo,
       type: 'image/jpeg',
       name: 'photo.jpg',
     });
-      const response = await fetch('http://192.168.1.20:8000/attendence/check_image', {
+      const response = await fetch('http://192.168.1.20:8000/companyadmin/similarity_search', {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-         const result = await response.json();
-     if (result.success ===true) {
-      // markPresent(); 
-     // Add attendance log
-        Alert.alert('Success', 'Attendance marked as Present');
-      } else {
-        Alert.alert('Failed', 'Face not recognized. Try again l.');
+      headers:{
+        'Content-Type':'multipart/form-data',
       }
+      
+    });
+
+    console.log('Status:', response.status);
+         const result = await response.json();
+         console.log('API Response:', result);
+
+if (String(result.status).toLowerCase() === "true") {
+  Alert.alert(
+    "✅ Attendance Marked",
+    `Welcome ${result.username}! Your attendance has been recorded successfully.`
+  );
+      setPhoto(null);
+    } else {
+      Alert.alert(' Failed', 'Face not recognized. Try again.');
+    }
+
       setPhoto(null);
     } catch (error) {
       Alert.alert('Error', 'Failed to mark attendance');
@@ -104,7 +117,7 @@ export default function AttendanceScreen({ navigation }) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.btnText}>Mark Attendance</Text>
+          <Text style={styles.btnText} onPress={handleMarkAttendance}>Mark Attendance</Text>
         )}
       </TouchableOpacity>
 

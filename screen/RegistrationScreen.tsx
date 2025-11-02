@@ -181,6 +181,16 @@ const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&p
         >
           <Text style={styles.btnText}>{loading ? 'Registering...' : 'Register'}</Text>
         </TouchableOpacity>
+         {/* <TouchableOpacity 
+          onPress={goBackToWelcome} 
+          style={[styles.btn, { backgroundColor: '#f87171', marginTop: 10 }]}
+        >
+          <Text style={styles.btnText}>← Back to Welcome</Text>
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity style={styles.backBtn} onPress={goBackToWelcome}>
+  <Text style={styles.btnText}>← Back to Welcome</Text>
+</TouchableOpacity> */}
+        
       </View>
     </ScrollView>
   );
@@ -228,5 +238,9 @@ const styles = StyleSheet.create({
   blue: { backgroundColor: '#3b82f6' },
   cyan: { backgroundColor: '#06b6d4' },
   green: { backgroundColor: '#10b981' },
-  btnText: { color: '#fff', fontWeight: '600' },
+  btnText: { color: '#fff', fontWeight: '600' ,textAlign:'center'},
+  backBtn: { backgroundColor: '#475569',
+    paddingVertical: 15,
+    borderRadius: 10,
+  marginTop:10},
 });
