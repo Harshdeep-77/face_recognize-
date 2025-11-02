@@ -23,7 +23,7 @@ const stats = [
 
  
 
-export default function DashboardScreen() {
+export default function DashboardScreen({onLogout}) {
   const navigation = useNavigation();
   const route = useRoute();
   const [teamMembers, setTeamMembers] = useState([
@@ -46,7 +46,7 @@ useEffect(() => {
   return (
     <LinearGradient colors={["#f0f9ff", "#ffffff"]} style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 🌈 Header Section */}
+        
         <LinearGradient
           colors={["#fff", "#b9bae4ff"]}
           style={styles.headerContainer}
@@ -56,8 +56,7 @@ useEffect(() => {
             source={require("../logo/skyound.jpg")}
             style={styles.headerLogo}
           />
-            <Text style={styles.headerTitle}>Welcome, Harsh 👋</Text>
-            <Text style={styles.headerSubtitle}>Dashboard Overview</Text>
+       
           </View>
         
         </LinearGradient>
@@ -109,6 +108,8 @@ useEffect(() => {
         </TouchableOpacity> */}
 
         {/* 👥 Recent Leads */}
+        
+
         <Text style={styles.subHeader}>Recent Leads</Text>
         <View style={styles.listContainer}>
           <FlatList

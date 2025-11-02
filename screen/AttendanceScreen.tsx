@@ -52,7 +52,7 @@ const handleMarkAttendance = () => {
     setLoading(true);
     try {
 
-       // Create FormData for photo upload
+       
     const formData = new FormData();
     formData.append('file', {
       uri: photo,
@@ -74,7 +74,7 @@ const handleMarkAttendance = () => {
 
 if (String(result.status).toLowerCase() === "true") {
   Alert.alert(
-    "✅ Attendance Marked",
+    "Attendance Marked",
     `Welcome ${result.username}! Your attendance has been recorded successfully.`
   );
       setPhoto(null);

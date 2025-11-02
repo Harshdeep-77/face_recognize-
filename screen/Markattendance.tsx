@@ -12,9 +12,19 @@ export default function MarkAttendanceScreen() {
 
   const fetchAttendance = async () => {
     try {
-      const response = await fetch("http://192.168.1.10:5000/attendance"); 
-      const data = await response.json();
-      setAttendanceData(data);
+    //   const response = await fetch("http://192.168.1.10:5000/attendance"); 
+    //   const data = await response.json();
+    //   setAttendanceData(data);
+      setTimeout(() => {
+    const fakeData = [
+      { name: "Harsh Deep", time: "09:00 AM", status: "Present" },
+      { name: "Ravi Kumar", time: "09:10 AM", status: "Absent" },
+      { name: "Aditi Sharma", time: "09:15 AM", status: "Present" },
+      { name: "Neha Singh", time: "09:20 AM", status: "Absent" },
+    ];
+    setAttendanceData(fakeData);
+    setLoading(false);
+  }, 1000);
     } catch (error) {
       console.error("Error fetching attendance:", error);
     } finally {

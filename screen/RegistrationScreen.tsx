@@ -15,6 +15,7 @@ export default function RegistrationScreen({ navigation }) {
   const [createdBy, setCreatedBy] = useState('');
   const [photo, setPhoto] = useState({uri:'',type:'',fileName:''});
   const [loading, setLoading] = useState(false);
+  const[photos,setPhotos]=useState( [ ]);
 
   const cameraOptions = {
     mediaType: 'photo',
@@ -23,11 +24,45 @@ export default function RegistrationScreen({ navigation }) {
   };
 
   // Open camera
-  const openCamera = async () => {
-    const result = await launchCamera(cameraOptions);
-    if (result.didCancel || !result.assets) return;
-    setPhoto(result.assets[0]);
-  };
+ const photoSteps = ["Front", "Left Side", "Right Side", "Top View"];
+
+const openCamera = async () => {
+  // Check if already completed all 4
+  if (photos.length >= photoSteps.length) {
+    Alert.alert("All Photos Taken", "You have already captured all 4 photos.");
+    return;
+  }
+
+  const currentStep = photoSteps[photos.length];
+
+  Alert.alert(
+    "Capture Required",
+    `Please take the ${currentStep} photo.`,
+    [
+      {
+        text: "Open Camera",
+        onPress: async () => {
+          const result = await launchCamera(cameraOptions);
+          if (result.didCancel || !result.assets) return;
+
+          setPhotos(prev => [...prev, result.assets[0]]);
+          const nextIndex = photos.length + 1;
+
+          if (nextIndex < photoSteps.length) {
+            Alert.alert(
+              "Next Photo",
+              `Now capture the ${photoSteps[nextIndex]} photo.`
+            );
+          } else {
+            Alert.alert("Done!", "All 4 photos captured successfully.");
+          }
+        }
+      },
+      { text: "Cancel", style: "cancel" }
+    ]
+  );
+};
+
 
   // Open gallery
   const openGallery = async () => {
@@ -38,8 +73,8 @@ export default function RegistrationScreen({ navigation }) {
 
   // Upload employee data
   const saveEmployee = async () => {
-    if (!companyAlias || !name || !username || !password || !role || !createdBy || !photo) {
-      Alert.alert('Missing Info', 'Please fill all fields and select a photo.');
+    if (!companyAlias || !name || !username || !password || !role || !createdBy  ||photos.length < 4) {
+      Alert.alert('Missing Info', 'Please fill all fields and upload 4 photo photo.');
       return;
     }
 
@@ -49,11 +84,19 @@ export default function RegistrationScreen({ navigation }) {
 
     try {
       const formData = new FormData();
-         formData.append('photo', {
-        uri: photo.uri,
-        type: photo.type || 'image/jpeg',
-        name: photo.fileName || 'employee_photo.jpg',
-      });
+      photos.forEach((photo) => {
+  formData.append("photos", {
+    uri: photo.uri,
+    type: photo.type || "image/jpeg",
+    name: photo.fileName || "employee_photo.jpg",
+  });
+});
+
+      //    formData.append('photo', {
+      //   uri: photo.uri,
+      //   type: photo.type || 'image/jpeg',
+      //   name: photo.fileName || 'employee_photo.jpg',
+      // });
 
   //     formData.append('Company_alias', "ed");
   // formData.append('name'," name");
@@ -90,7 +133,7 @@ const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&p
         setPassword('');
         setRole('');
         setCreatedBy('');
-        setPhoto({});
+        setPhotos([]);
       } else {
         const err = await response.text();
         Alert.alert('Error', err || 'Failed to register employee.');
@@ -155,14 +198,27 @@ const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&p
           onChangeText={setCreatedBy}
           style={styles.input}
         />
+          
+           
 
-        <View style={styles.cameraBox}>
+<View style={styles.cameraBox}>
+  {photos.length > 0 ? (
+    <View style={styles.photoGrid}>
+      {photos.map((img, index) => (
+        <Image key={index} source={{ uri: img.uri }} style={styles.previewImages} />
+      ))}
+    </View>
+  ) : (
+    <Text style={styles.placeholderText}>No Photos Selected</Text>
+  )}
+</View>
+        {/* <View style={styles.cameraBox}>
           {photo ? (
             <Image source={{ uri: photo.uri }} style={styles.previewImage} />
           ) : (
             <Text style={styles.placeholderText}>No Photo Selected</Text>
           )}
-        </View>
+        </View> */}
 
         <View style={styles.row}>
           <TouchableOpacity style={[styles.btn, styles.blue]} onPress={openCamera}>
@@ -243,4 +299,16 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 10,
   marginTop:10},
+  photoGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+},
+previewImages: {
+  width: 80,
+  height: 80,
+  borderRadius: 10,
+  margin: 5,
+},
+
 });

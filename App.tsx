@@ -27,6 +27,7 @@ const Tab = createMaterialTopTabNavigator();
     const [showDashboard, setShowDashboard] = useState(false);
     const [showRegst, setShowRegst] = useState(false);
     const [showUserList, setShowUserList] = useState(false);
+    
    return (
         
             <NavigationContainer>
@@ -45,15 +46,31 @@ const Tab = createMaterialTopTabNavigator();
           <>
             <Stack.Screen name="Dashboard" component={DashboardScreen} 
                 options={{
-            title: "My Dashboard",  // change title text
+            title: "My Dashboard",  
             headerStyle: { backgroundColor: "#3b82f6" },
             headerTintColor: "#fff",
             headerTitleStyle: { fontWeight: "700", fontSize: 20 },
+               headerRight: () => (
+      <TouchableOpacity
+        onPress={() => setIsLoggedIn(false)} 
+        style={{
+          backgroundColor: "#6e78a7ff",
+          paddingVertical: 6,
+          paddingHorizontal: 12,
+          borderRadius: 8,
+          marginRight: 10,
+        }}
+      >
+        <Text style={{ color: "#fff", fontWeight: "600" }}>Logout</Text>
+      </TouchableOpacity>
+    ),
+            
           }}/>
+ 
             <Stack.Screen name="Registration" component={RegistrationScreen}
            
           options={{
-            title: "Registration Form", // custom title
+            title: "Registration Form", 
             headerStyle: { backgroundColor: "#0f172a" },
             headerTintColor: "#fff",
           }} />
@@ -87,6 +104,7 @@ const Tab = createMaterialTopTabNavigator();
           }}/> */}
           </>
         )}
+ 
       </Stack.Navigator>
     </NavigationContainer>
     
