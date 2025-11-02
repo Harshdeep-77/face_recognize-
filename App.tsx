@@ -14,6 +14,8 @@ import LoginScreen from './screen/LoginScreen';
 import WelcomeScreen from './screen/WelcomeScreen';
 import DashboardScreen from './screen/DashboardScreen';
 import UserList from './screen/UserList';
+import UserProfile from './screen/UserProfile';
+import Markattendance from './screen/Markattendance';
  
 const Stack = createNativeStackNavigator();
 
@@ -61,13 +63,28 @@ const Tab = createMaterialTopTabNavigator();
             headerStyle: { backgroundColor: "#0f172a" },
             headerTintColor: "#fff",
           }}
+          
 />
-            <Stack.Screen name="AtendanceScreen" component={AttendanceScreen} 
+            <Stack.Screen name="UserProfile" component={UserProfile} 
+                 options={{
+            title: "User Profile",
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#fff",
+          }}/>  
+
+            <Stack.Screen name="Markattendance" component={Markattendance} 
+                 options={{
+            title: "Mark Attendance",
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#fff",
+          }}/>
+
+            {/* <Stack.Screen name="AtendanceScreen" component={AttendanceScreen} 
                  options={{
             title: "",
             headerStyle: { backgroundColor: "#0f172a" },
             headerTintColor: "#fff",
-          }}/>
+          }}/> */}
           </>
         )}
       </Stack.Navigator>

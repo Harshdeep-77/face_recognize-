@@ -90,14 +90,23 @@ useEffect(() => {
           <Text style={styles.tileIcon}>👥</Text>
           <Text style={styles.tileText}>User List</Text>
         </TouchableOpacity>
-          <TouchableOpacity
+
+         <TouchableOpacity
+          style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
+          onPress={() => navigation.navigate("Markattendance")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.tileIcon}>👥</Text>
+          <Text style={styles.tileText}>Mark Attendance</Text>
+        </TouchableOpacity>
+          {/* <TouchableOpacity
           style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
           onPress={() => navigation.navigate("AtendanceScreen")}
           activeOpacity={0.85}
         >
           <Text style={styles.tileIcon}>👥</Text>
           <Text style={styles.tileText}>AttendenceScreen</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* 👥 Recent Leads */}
         <Text style={styles.subHeader}>Recent Leads</Text>

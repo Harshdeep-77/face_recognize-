@@ -26,23 +26,23 @@ export default function LoginScreen({ onLogin }) {
     setLoading(true);
 
     try{
-      const query = `username=${username}&password=${password}`;
-      const response = fetch(`http://192.168.1.20:8000/companyadmin/login?${query}`,{
-        method:'GET',
-        headers:{
-          'Content-Type':'application/json',
-        }
-      });
-      const res = await response;
-       if (res.ok) {
-      // const data = await response.json();
-      // console.log("Response data:", data);
+      // const query = `username=${username}&password=${password}`;
+      // const response = fetch(`http://192.168.1.20:8000/companyadmin/login?${query}`,{
+      //   method:'GET',
+      //   headers:{
+      //     'Content-Type':'application/json',
+      //   }
+      // });
+      // const res = await response;
+      //  if (res.ok) {
+      // // const data = await response.json();
+      // // console.log("Response data:", data);
 
-      Alert.alert("Login Successful!");
+      // Alert.alert("Login Successful!");
       onLogin();
-    } else {
-     Alert.alert("Invalid credentials", "Please check your username or password");
-    }
+    // } else {
+    //  Alert.alert("Invalid credentials", "Please check your username or password");
+    // }
 
     }catch(error){
       console.log("Login error:",error);

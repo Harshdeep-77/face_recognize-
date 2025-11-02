@@ -24,7 +24,7 @@ export default function UserListScreen({ navigation }) {
   };
 
   const handleViewProfile = (user) => {
-    Alert.alert("Profile", `${user.name}\nRole: ${user.role}`);
+    navigation.navigate("UserProfile", { user });
   };
 
   return (
@@ -59,9 +59,9 @@ export default function UserListScreen({ navigation }) {
         contentContainerStyle={{ paddingBottom: 20 }}
       />
 
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      {/* <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>⬅ Back to Dashboard</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </LinearGradient>
   );
 }
