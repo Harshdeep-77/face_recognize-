@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, Image, 
-  StyleSheet, Alert, ScrollView 
+  StyleSheet, Alert, ScrollView ,Platform
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+ 
  
 
 export default function RegistrationScreen({ navigation }) {
@@ -23,11 +24,11 @@ export default function RegistrationScreen({ navigation }) {
     includeBase64: false,
   };
 
-  // Open camera
+  
  const photoSteps = ["Front", "Left Side", "Right Side", "Top View"];
 
 const openCamera = async () => {
-  // Check if already completed all 4
+  
   if (photos.length >= photoSteps.length) {
     Alert.alert("All Photos Taken", "You have already captured all 4 photos.");
     return;
@@ -64,12 +65,27 @@ const openCamera = async () => {
 };
 
 
-  // Open gallery
-  const openGallery = async () => {
-    const result = await launchImageLibrary(cameraOptions);
-    if (result.didCancel || !result.assets) return;
-    setPhoto(result.assets[0]);
-  };
+ const openGallery = async () => {
+  if (photos.length >= 4) {
+    Alert.alert("Limit Reached", "You can only upload 4 photos.");
+    return;
+  }
+
+  const result = await launchImageLibrary({
+    mediaType: 'photo',
+    selectionLimit: 1, 
+  });
+
+  if (result.didCancel || !result.assets) return;
+
+  const selectedPhoto = result.assets[0];
+  setPhotos(prev => [...prev, selectedPhoto]); 
+
+  Alert.alert(
+    "Photo Added",
+    `You selected ${photos.length + 1} of 4 required photos.`
+  );
+};
 
   // Upload employee data
   const saveEmployee = async () => {
@@ -92,28 +108,7 @@ const openCamera = async () => {
   });
 });
 
-      //    formData.append('photo', {
-      //   uri: photo.uri,
-      //   type: photo.type || 'image/jpeg',
-      //   name: photo.fileName || 'employee_photo.jpg',
-      // });
-
-  //     formData.append('Company_alias', "ed");
-  // formData.append('name'," name");
-  // formData.append('username', "username");
-  // formData.append('password', "password");
-  // formData.append('role', "role");
-  // formData.append('created_by', "createdBy");
-  // formData.append('photo', {
-  //   uri: photo.uri,
-  //   type: 'image/jpeg', // or 'image/png'
-  //   name: 'photo.jpg',
-  // });
-      // formData.append('file', {
-      //   uri: photo.uri,
-      //   type: photo.type || 'image/jpeg',
-      //   name: photo.fileName || 'employee_photo.jpg',
-      // });
+      
 
 const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&password=${password}&role=${role}&created_by=${createdBy}`;
       const response = await fetch(`http://192.168.1.20:8000/companyadmin/employee?${query}`, {
@@ -146,6 +141,7 @@ const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&p
   };
 
   return (
+         
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>Employee Registration</Text>
@@ -249,6 +245,7 @@ const query = `Company_alias=${companyAlias}&name=${name}&username=${username}&p
         
       </View>
     </ScrollView>
+   
   );
 }
 

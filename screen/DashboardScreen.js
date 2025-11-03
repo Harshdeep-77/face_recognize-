@@ -13,10 +13,10 @@ import { useNavigation,useRoute } from "@react-navigation/native";
 // import { useNavigation, useRoute } from "@react-navigation/native";
  
 const stats = [
-  { id: "1", label: "Total Leads", value: "1,249", color: "#3b82f6", icon: "📊" },
-  { id: "2", label: "Assigned", value: "856", color: "#10b981", icon: "🧾" },
+  { id: "1", label: "Total User", value: "1,249", color: "#3b82f6", icon: "📊" },
+  { id: "2", label: "Present", value: "856", color: "#10b981", icon: "🧾" },
   { id: "3", label: "Closed", value: "760", color: "#22c55e", icon: "✅" },
-  { id: "4", label: "Pending", value: "51", color: "#f97316", icon: "⏳" },
+  { id: "4", label: "Absent", value: "51", color: "#f97316", icon: "⏳" },
 ];
 
  
@@ -77,7 +77,7 @@ useEffect(() => {
           onPress={() => navigation.navigate("Registration")}
           activeOpacity={0.85}
         >
-          <Text style={styles.tileIcon}>📝</Text>
+          <Text style={styles.tileIcon}></Text>
           <Text style={styles.tileText}>Registration</Text>
         </TouchableOpacity>
 
@@ -86,7 +86,7 @@ useEffect(() => {
           onPress={() => navigation.navigate("UserList")}
           activeOpacity={0.85}
         >
-          <Text style={styles.tileIcon}>👥</Text>
+          <Text style={styles.tileIcon}></Text>
           <Text style={styles.tileText}>User List</Text>
         </TouchableOpacity>
 
@@ -95,8 +95,8 @@ useEffect(() => {
           onPress={() => navigation.navigate("Markattendance")}
           activeOpacity={0.85}
         >
-          <Text style={styles.tileIcon}>👥</Text>
-          <Text style={styles.tileText}>Mark Attendance</Text>
+          <Text style={styles.tileIcon}></Text>
+          <Text style={styles.tileText}>View Attendance</Text>
         </TouchableOpacity>
           {/* <TouchableOpacity
           style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
