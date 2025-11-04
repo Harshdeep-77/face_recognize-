@@ -98,6 +98,8 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
                   headers: { 'Content-Type': 'application/json' },
                 },
               );
+              console.log('Delete response status:', response.status);
+              console.log('Delete response ok:', response.json());
                   
               if (response.ok) {
                 Alert.alert('Success', `${username} deleted successfully!`);

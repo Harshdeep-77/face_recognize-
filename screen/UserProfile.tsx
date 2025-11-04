@@ -48,6 +48,12 @@ export default function UserProfileScreen({ route, navigation }) {
           </View>
         </View>
       </View>
+       <TouchableOpacity
+  style={styles.editButton}
+  onPress={() => navigation.navigate('UpdateEmployee', { user })}
+>
+  <Text style={styles.editButtonText}>✏️ Edit User</Text>
+</TouchableOpacity>
 
        
       {/* <TouchableOpacity
@@ -165,4 +171,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  editButton: {
+  backgroundColor: '#3b82f6',
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  borderRadius: 12,
+  marginTop: 20,
+  elevation: 4,
+},
+editButtonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+  textAlign: 'center',
+},
+
 });

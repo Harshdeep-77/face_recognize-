@@ -65,39 +65,62 @@ useEffect(() => {
         <View style={styles.statsContainer}>
           {stats.map((item) => (
             <View key={item.id} style={[styles.card, { backgroundColor: item.color }]}>
-              <Text style={styles.icon}>{item.icon}</Text>
+              {/* <Text style={styles.icon}>{item.icon}</Text> */}
               <Text style={styles.value}>{item.value}</Text>
               <Text style={styles.label}>{item.label}</Text>
             </View>
+            
           ))}
-        </View>
- 
-        <TouchableOpacity
-          style={[styles.tile, { backgroundColor: "#6366f1" }]}
+           <TouchableOpacity
+          style={[styles.card, { backgroundColor: "#6366f1" }]}
           onPress={() => navigation.navigate("Registration")}
           activeOpacity={0.85}
         >
-          <Text style={styles.tileIcon}></Text>
-          <Text style={styles.tileText}>Registration</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
-          onPress={() => navigation.navigate("UserList")}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.tileIcon}></Text>
-          <Text style={styles.tileText}>User List</Text>
+          {/* <Text style={styles.icon}></Text> */}
+          <Text style={styles.label}>Registration</Text>
         </TouchableOpacity>
 
          <TouchableOpacity
-          style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
+          style={[styles.card, { backgroundColor: "#8b5cf6" }]}
+          onPress={() => navigation.navigate("UserList")}
+          activeOpacity={0.85}
+        >
+          
+          <Text style={styles.label}>User List</Text>
+        </TouchableOpacity>
+         <TouchableOpacity
+          style={[styles.card, { backgroundColor: "#8b5cf6" }]}
           onPress={() => navigation.navigate("Markattendance")}
           activeOpacity={0.85}
         >
-          <Text style={styles.tileIcon}></Text>
-          <Text style={styles.tileText}>View Attendance</Text>
+          {/* <Text style={styles.tileIcon}></Text> */}
+          <Text style={styles.label}>View Attendance</Text>
         </TouchableOpacity>
+
+         <TouchableOpacity
+          style={[styles.card, { backgroundColor: "#8b5cf6" }]}
+          onPress={() => navigation.navigate("AddLeadScreen")}
+          activeOpacity={0.85}
+        >
+           
+          <Text style={styles.label}>Add Lead</Text>
+        </TouchableOpacity>
+
+         <TouchableOpacity
+          style={[styles.card, { backgroundColor: "#8b5cf6" }]}
+          onPress={() => navigation.navigate("AssignLeadScreen")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.label}>Assign Lead</Text>
+        </TouchableOpacity>
+
+        </View>
+ 
+ 
+
+         
+
+         
           {/* <TouchableOpacity
           style={[styles.tile, { backgroundColor: "#8b5cf6" }]}
           onPress={() => navigation.navigate("AtendanceScreen")}
