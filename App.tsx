@@ -87,6 +87,7 @@ const App = () => {
             <Stack.Screen
               name="Dashboard"
               component={DashboardScreen}
+              initialParams={{username}}
               options={{
                 title: 'My Dashboard',
                 headerStyle: { backgroundColor: '#3b82f6' },
@@ -160,36 +161,7 @@ const App = () => {
         )}
       </Stack.Navigator>
     </NavigationContainer>
-
-    //    <NavigationContainer>
-    //     {!isLoggedIn ? (
-    //       <LoginScreen onLogin={() => setIsLoggedIn(true)} />
-    //     ) : !showDashboard? (
-    //       <DashboardScreen
-    //         navigation={() => setShowDashboard(true)}
-
-    //       />
-
-    //     ): !showRegst ? (
-    //       // 🟦 Dashboard Screen (after login)
-    //       <RegistrationScreen
-    //         navigation={() => setShowRegst(true)}
-    //       />
-
-    //     ):!showUserList ? (
-    //       // 🟦 Dashboard Screen (after login)
-    //         <UserList
-    //         usernavigation={() => setShowUserList(true)}
-    //   />
-
-    //     )  :(
-    //       <>
-
-    //       </>
-    //  )
-
-    //     }
-    //   </NavigationContainer>
+ 
   );
 };
 

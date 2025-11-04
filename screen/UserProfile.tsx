@@ -36,9 +36,9 @@ export default function UserProfileScreen({ route, navigation }) {
           <Text style={styles.role}>{user.role}</Text>
 
           <View style={styles.detailBox}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Username</Text>
             <Text style={styles.value}>
-              {user.email ? user.email : "harshdeep@gmail.com "}
+              {user.username}
             </Text>
           </View>
 

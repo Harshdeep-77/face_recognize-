@@ -35,24 +35,20 @@ export default function LoginScreen({ onLogin, navigation }) {
           },
         },
       );
-          console.log('Login response status:', response.status);
-          console.log('respose',response)
-          console.log('Login response headers:', response.headers);
+      console.log('Login response status:', response.status);
+      console.log('respose', response);
+      console.log('Login response headers:', response.headers);
       if (response.ok) {
         const resData = await response.json();
         console.log('Response data:', resData);
 
-         const role = resData?.data?.role?.trim().toLowerCase();
+        const role = resData?.data?.role?.trim().toLowerCase();
 
         if (role === 'employee') {
           Alert.alert('Welcome!', 'You are logged in as Employee');
-          onLogin(role,username);
-           
+          onLogin(role, username);
         } else if (role === 'admin' || role === 'hr') {
-          Alert.alert(
-            'Login Successful!',
-            `Welcome ${role.toUpperCase()}`,
-          );
+          Alert.alert('Login Successful!', `Welcome ${role.toUpperCase()}`);
           onLogin(role);
         } else {
           Alert.alert('Login Failed', 'Invalid role received from server');
@@ -118,6 +114,19 @@ export default function LoginScreen({ onLogin, navigation }) {
             >
               <Text style={styles.buttonText}>LOGIN</Text>
             </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onLogin('admin', 'Harshdeep')} 
+            style={{
+              backgroundColor: '#22c55e',
+              padding: 10,
+              borderRadius: 8,
+              marginTop: 10,
+            }}
+          >
+            <Text style={{ color: '#fff', textAlign: 'center' }}>
+              Skip Login (Test)
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.footerText}>

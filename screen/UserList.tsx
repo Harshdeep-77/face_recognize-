@@ -6,14 +6,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 // Define a TypeScript type for your user
 type User = {
   id: string;
   name: string;
   role: string;
+  company_alias: string;
+  username: string;
 };
 
 interface UserListScreenProps {
@@ -21,18 +26,17 @@ interface UserListScreenProps {
 }
 
 const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
+  // const { usernames } = route.params;
   const [users, setUsers] = useState<User[]>([]); //  empty array in strating
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-     
-   const fetchEmployeeData = async () => {
+  const fetchEmployeeData = async () => {
     try {
       setLoading(true);
       setError(null);
 
- 
-      const username = 'yoyhyg';
+      const username = 'yogesh123@';
       const alias_name = 'ed';
 
       const url = `http://192.168.1.20:8000/companyadmin/employees?username=${username}&alias_name=${alias_name}`;
@@ -46,11 +50,9 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-       
       const data = await response.json();
       // console.log('Fetched Employee Data:', data);
 
-       
       if (Array.isArray(data)) {
         setUsers(data);
       } else if (data.employees) {
@@ -66,40 +68,54 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
     }
   };
 
-  
-  useEffect(() => {
-    fetchEmployeeData();
-  }, []);
-  // Step 2: Fetch data from API
-  // const fetchEmployeeData = async () => {
-  //   try {
-  //     setLoading(true);
-  //     setError(null);
-      
-
-  //     const response = await fetch('http://192.168.1.20:8000/companyadmin/employees'); // 🔹 replace with your real API
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! Status: ${response.status}`);
-  //     }
-
-  //     // Step 3: Convert API data to JSON
-  //     const data: User[] = await response.json();
-  //     console.log('Fetched Employee Data:', data);
-
-  //     // Step 4: Update state with fetched users
-  //     setUsers(data);
-  //   } catch (err: any) {
-  //     console.error('Fetch Error:', err);
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Step 5: Call fetch when screen loads
   // useEffect(() => {
   //   fetchEmployeeData();
   // }, []);
+  useFocusEffect(
+  React.useCallback(() => {
+    fetchEmployeeData();
+  }, [])
+);
+
+  const deleteUser = async (username:string ) => {
+    const companyAlias = 'ed'; // Replace with actual company alias if needed
+    try {
+      Alert.alert(
+        'Confirm Delete',
+        `Are you sure you want to delete success?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              console.log('Deleting user:', username, 'from company:', companyAlias);
+              
+              const response = await fetch(
+                `http://192.168.1.20:8000/companyadmin/employee?Company_alias=${companyAlias}&username=${username}`,
+                {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              );
+                  
+              if (response.ok) {
+                Alert.alert('Success', `${username} deleted successfully!`);
+                
+                setUsers(prev => prev.filter(u => u.username !== username));
+              } else {
+                const errorText = await response.text();
+                Alert.alert('Error', errorText || 'Failed to delete user');
+              }
+            },
+          },
+        ],
+      );
+    } catch (err) {
+      console.error('Delete Error:', err);
+      Alert.alert('Error', 'Something went wrong while deleting the user.');
+    }
+  };
 
   // Step 6: Handle user profile view
   const handleViewProfile = (user: User) => {
@@ -116,7 +132,7 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
     );
   }
 
-   if (error) {
+  if (error) {
     return (
       <View style={styles.center}>
         <Text style={{ color: 'red' }}>Error: {error}</Text>
@@ -127,11 +143,12 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
     );
   }
 
-   const renderItem = ({ item }: { item: User }) => (
+  const renderItem = ({ item }: { item: User }) => (
     <LinearGradient colors={['#1e293b', '#334155']} style={styles.card}>
       <View>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.role}>{item.role}</Text>
+        
       </View>
       <TouchableOpacity
         style={[styles.button, { backgroundColor: '#10b981' }]}
@@ -139,19 +156,22 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>View</Text>
       </TouchableOpacity>
+       <TouchableOpacity
+        style={[styles.button, { backgroundColor: '#ef4444' }]}
+        onPress={() => deleteUser(item.username)}
+      >
+        <Text style={styles.buttonText}>Delete</Text>
+      </TouchableOpacity>
     </LinearGradient>
   );
-  
-  
-  
 
-   return (
+  return (
     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
       <Text style={styles.header}>Employee List</Text>
 
       <FlatList
         data={users}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.username}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
@@ -193,19 +213,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import React, { useState, useEffect } from 'react';
 // import {
@@ -259,8 +266,6 @@ const styles = StyleSheet.create({
 //     fetchEmployeeData();
 //   }, []);
 
-
-     
 //   const renderItem = ({ item }: { item: User }) => (
 //     <View style={styles.card}>
 //       <View style={{ flex: 1 }}>
@@ -272,9 +277,7 @@ const styles = StyleSheet.create({
 //       </TouchableOpacity>
 //     </View>
 //   );
-    
 
-  
 //   if (loading) {
 //     return (
 //       <View style={styles.center}>
@@ -294,7 +297,6 @@ const styles = StyleSheet.create({
 //       </View>
 //     );
 //   }
-
 
 //   return (
 //     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
