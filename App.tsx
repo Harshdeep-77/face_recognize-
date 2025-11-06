@@ -19,8 +19,9 @@ import Markattendance from './screen/Markattendance';
 import Employeeattendace from './screen/Employeeattendace';
 import UpdateEmployee from './screen/UpdateEmployee';
 import AddLeadScreen from './screen/AddLeadScreen';
-import AssignLeadScreen from './screen/AssignLeadScreen'
-
+import AssignLeadScreen from './screen/AssignLeadScreen';
+import ShowAllLeadScreen from "./screen/ShowAllLeadScreen";
+import ViewLead from "./screen/ViewLead";
 
 const Stack = createNativeStackNavigator();
 
@@ -170,8 +171,25 @@ const App = () => {
                 headerTintColor: '#fff',
               }}
             />
+             <Stack.Screen
+              name="ShowAllLeadScreen"
+              component={ ShowAllLeadScreen}
+              options={{
+                title: 'skybound',
+                headerStyle: { backgroundColor: '#0f172a' },
+                headerTintColor: '#fff',
+              }}
+            />
+              <Stack.Screen
+              name="ViewLead"
+              component={ViewLead}
+              options={{
+                title: 'skybound',
+                headerStyle: { backgroundColor: '#0f172a' },
+                headerTintColor: '#fff',
+              }}
+            />
             
-
             <Stack.Screen
               name="Markattendance"
               component={Markattendance}
