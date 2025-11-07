@@ -1,5 +1,3 @@
- 
-
 import React, { useState } from 'react';
 import {
   View,
@@ -9,7 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert, 
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
@@ -24,6 +22,8 @@ type Lead = {
   assigned_to: string;
   next_followup: string | null;
   city: string;
+  active: string;
+  stage:string;
 };
 
 interface AllLeadsScreenProps {
@@ -36,10 +36,9 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
-  const route=useRoute();
-  const filterParm=(route.params as {filter?:String})?.filter;
-  const [selectedStatus, setSelectedStatus] = useState(filterParm ||'open');
+  const route = useRoute();
+  const filterParm = (route.params as { filter?: String })?.filter;
+  const [selectedStatus, setSelectedStatus] = useState(filterParm || 'all');
 
   const [menuForId, setMenuForId] = useState<string | null>(null);
   // const[salesman_list,setSalesman_list]=useState(true);
@@ -48,7 +47,6 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [selectedSalesman, setSelectedSalesman] = useState(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-
   const fetchLeads = async (status = selectedStatus) => {
     try {
       setLoading(true);
@@ -56,18 +54,18 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
       const username = 'yogesh123@';
       const alias_name = 'ed';
+      console.log(`status is ${status}`);
 
-      const API_URL = `http://192.168.1.20:8000/lead/leads?username=${username}&alias_name=${alias_name}&active=${encodeURIComponent(
+      const API_URL = `http://192.168.1.20:8000/lead/get_leads?username=${username}&alias_name=${alias_name}&stage=${encodeURIComponent(
         status,
       )}`;
-
       const response = await fetch(API_URL, {
         method: 'GET',
         headers: { Accept: 'application/json' },
       });
 
       const data = await response.json();
-      // console.log('Fetched Lead Data:', data);
+      console.log('Fetched Lead Data:', data);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -85,6 +83,8 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           next_followup: lead.next_followup,
           city: lead.city,
           requirement: lead.requirement,
+          // active: lead.active,
+          stage:lead.stage,
         }));
         setLeads(mappedLeads);
       } else {
@@ -114,20 +114,22 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       item.company_name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'updated':
-      case 'converted':
-        return '#10b981';
-      case 'pending':
-      case 'inprogressive':
-        return '#facc15';
-      case 'not interested':
-      case 'close':
-      case 'closed':
-        return '#ef4444';
-      default:
-        return '#60a5fa';
+  const getStatusColor = (active: string) => {
+    switch (
+      active == undefined ? '' : active.toLowerCase()
+      // case 'updated':
+      // case 'converted':
+      //   return '#10b981';
+      // case 'pending':
+      // case 'inprogressive':
+      //   return '#facc15';
+      // case 'not interested':
+      // case 'close':
+      // case 'closed':
+      //   return '#ef4444';
+      // default:
+      //   return '#60a5fa';
+    ) {
     }
   };
 
@@ -154,7 +156,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       if (!response.ok) throw new Error('Failed to fetch salesmen');
       setSalesmen(data);
       setShowAssignModal(true);
-           setSelectedLeadId(lead.id);
+      setSelectedLeadId(lead.id);
     } catch (error: any) {
       console.error('Assign Error:', error);
       Alert.alert('Error', error.message || 'Failed to load salesmen list.');
@@ -163,14 +165,10 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
   const handleClose = (lead: Lead) => {
     setMenuForId(null);
-    Alert.alert(
-      'Close Lead',
-      `Are you sure you want to close `,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes, Close', onPress: () => closeLeadOnServer(lead.id) },
-      ],
-    );
+    Alert.alert('Close Lead', `Are you sure you want to close `, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Yes, Close', onPress: () => closeLeadOnServer(lead.id) },
+    ]);
   };
 
   const closeLeadOnServer = async (leadId: string) => {
@@ -261,10 +259,12 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           <View
             style={[
               styles.statusPill,
-              { backgroundColor: getStatusColor(item.status) },
+              // { backgroundColor: getStatusColor(item.active) },
             ]}
           >
-            <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+            <Text style={styles.statusText}>
+              {item.active == undefined ? '' : item.active.toLowerCase()}
+            </Text>
           </View>
 
           {/* THREE-DOT MENU BUTTON */}
@@ -282,18 +282,12 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       {/* Body */}
       <View style={styles.infoContainer}>
         <Text style={styles.detailText}>
-          <Text style={{ fontWeight: '600' }}>name:</Text>
+          <Text style={{ fontWeight: '600' }}>Client Name </Text>
           {item.name}
         </Text>
         <Text style={styles.detailText}>
-          <Text style={{ fontWeight: '600' }}>Company:</Text>{' '}
+          <Text style={{ fontWeight: '600' }}>Company Name </Text>{' '}
           {item.company_name}
-        </Text>
-        <Text style={styles.detailText}>
-          <Text style={{ fontWeight: '600' }}>Email:</Text> {item.email}
-        </Text>
-        <Text style={styles.detailText}>
-          <Text style={{ fontWeight: '600' }}>City:</Text> {item.city}
         </Text>
         <Text style={styles.detailText}>
           <Text style={{ fontWeight: '600' }}>Phone:</Text> {item.contact_1}
@@ -301,6 +295,9 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         <Text style={styles.detailText}>
           <Text style={{ fontWeight: '600' }}>Requerment:</Text>{' '}
           {item.requirement}
+        </Text>
+        <Text style={styles.detailText}>
+          <Text style={{ fontWeight: '600' }}>Status:</Text> {item.stage}
         </Text>
       </View>
 
@@ -331,17 +328,13 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
             style={styles.menuItem}
             onPress={() => {
               setMenuForId(null);
-              Alert.alert(
-                'Delete Lead',
-                `Are you sure you want to delete`,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Yes, Close',
-                    onPress: () => closeLeadOnServer(item.id),
-                  },
-                ],
-              );
+              Alert.alert('Delete Lead', `Are you sure you want to delete`, [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, Close',
+                  onPress: () => closeLeadOnServer(item.id),
+                },
+              ]);
             }}
           >
             <Text style={styles.menuItemText}>Delete</Text>
@@ -366,7 +359,6 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       )}
     </LinearGradient>
   );
- 
 
   if (loading) {
     return (
@@ -409,11 +401,11 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.header}>📋 All Leads</Text>
+      <Text style={styles.header}>Leads</Text>
 
       {/* Status Filter */}
       <View style={styles.filterContainer}>
-        {['all','open', 'in progress', 'closed'].map(status => (
+        {['all', 'open', 'in progress', 'closed'].map(status => (
           <TouchableOpacity
             key={status}
             style={[
@@ -450,78 +442,76 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={() => (
-          <Text style={styles.emptyText}>
-            No leads found 
-          </Text>
+          <Text style={styles.emptyText}>No leads found</Text>
         )}
         // auto-close menu when scrolling (nice UX)
         onScrollBeginDrag={() => setMenuForId(null)}
       />
-     {showAssignModal && (
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalBox}>
-      <Text style={styles.modalTitle}>Select Team</Text>
-      <Text style={styles.modalSubtitle}>
-        Select team member to assign lead
-      </Text>
+      {showAssignModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Select Team</Text>
+            <Text style={styles.modalSubtitle}>
+              Select team member to assign lead
+            </Text>
 
-      {/*  Tap row = select only */}
-      <FlatList
-        data={salesmen}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.radioOption}
-            onPress={() => setSelectedSalesman(item)}
-          >
-            <View
-              style={[
-                styles.radioOuter,
-                selectedSalesman?.id === item.id && styles.radioOuterSelected,
-              ]}
-            >
-              {selectedSalesman?.id === item.id && (
-                <View style={styles.radioInner} />
+            {/*  Tap row = select only */}
+            <FlatList
+              data={salesmen}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => setSelectedSalesman(item)}
+                >
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      selectedSalesman?.id === item.id &&
+                        styles.radioOuterSelected,
+                    ]}
+                  >
+                    {selectedSalesman?.id === item.id && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+                  <Text style={styles.radioLabel}>{item.name}</Text>
+                </TouchableOpacity>
               )}
+            />
+
+            {/*  Buttons */}
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowAssignModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  selectedSalesman
+                    ? styles.assignButton
+                    : styles.assignButtonDisabled,
+                ]}
+                disabled={!selectedSalesman}
+                onPress={() => {
+                  if (!selectedSalesman) return;
+                  console.log('Assigning lead to:', selectedSalesman.username);
+                  assignLeadToSalesman(
+                    selectedLeadId!,
+                    selectedSalesman.username,
+                  );
+                }}
+              >
+                <Text style={styles.assignButtonText}>Assign</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.radioLabel}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
-
-      {/*  Buttons */}
-      <View style={styles.modalButtonRow}>
-        <TouchableOpacity
-          style={[styles.modalButton, styles.cancelButton]}
-          onPress={() => setShowAssignModal(false)}
-        >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.modalButton,
-            selectedSalesman
-              ? styles.assignButton
-              : styles.assignButtonDisabled,
-          ]}
-          disabled={!selectedSalesman}
-          onPress={() => {
-            if (!selectedSalesman) return;
-            console.log('Assigning lead to:', selectedSalesman.username);
-            assignLeadToSalesman(
-              selectedLeadId!,
-              selectedSalesman.username
-            );
-          }}
-        >
-          <Text style={styles.assignButtonText}>Assign</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-)}
-
+          </View>
+        </View>
+      )}
     </LinearGradient>
   );
 };

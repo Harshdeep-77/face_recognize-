@@ -140,7 +140,7 @@ const DashboardScreen: React.FC = () => {
               }
             >
               <Text style={styles.value}>{leadStats.in_progress_leads}</Text>
-              <Text style={styles.label}>In_progress</Text>
+              <Text style={styles.label}>In Progress</Text>
             </TouchableOpacity>
              
               <TouchableOpacity
@@ -157,7 +157,7 @@ const DashboardScreen: React.FC = () => {
            <TouchableOpacity
               style={[styles.card, { backgroundColor: '#10b981' }]}
               onPress={() =>
-                navigation.navigate('ShowAllLeadScreen', { filter: 'in progress' })
+                navigation.navigate('ShowAllLeadScreen', { filter: 'open' })
               }
             >
               <Text style={styles.value}>{leadStats.open_leads}</Text>

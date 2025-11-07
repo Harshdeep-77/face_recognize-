@@ -1,233 +1,294 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
   Alert,
   ActivityIndicator,
-  ScrollView,
-} from "react-native";
-import LinearGradient from "react-native-linear-gradient";
-import { Picker } from "@react-native-picker/picker";
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import LinearGradient from 'react-native-linear-gradient';
 
 const AddLeadScreen = ({ navigation }: any) => {
+  const [activeTab, setActiveTab] = useState<'manual' | 'bulk'>('manual');
+
   const [formData, setFormData] = useState({
-    name: "",
-    company_name: "",
-    city: "",
-    state: "",
-    contect_1: "",
-    inquery_type: "",
-    email: "",
-    requirement: "",
-    progress: "cold",
-    alias_name: "ed",
-    active: "inprogressive",
+    name: '',
+    company_name: '',
+    state: '',
+    city: '',
+    contact_number: '',
+    enquiry_type: '',
+    email: '',
+    requirement: '',
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.company_name || !formData.contect_1) {
-      Alert.alert("Validation Error", "Please fill required fields!");
+    if (!formData.name || !formData.contact_number || !formData.company_name) {
+      Alert.alert('Validation Error', 'Please fill all required fields.');
       return;
     }
 
     try {
       setLoading(true);
-
       const queryParams = new URLSearchParams(formData as any).toString();
       const API_URL = `http://192.168.1.20:8000/lead/lead?${queryParams}`;
 
-      console.log("Submitting Lead to:", API_URL);
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-      });
-
+      const response = await fetch(API_URL, { method: 'POST' });
       const data = await response.json();
-      console.log("Add Lead Response:", data);
 
       if (response.ok) {
-        Alert.alert("✅ Success", "Lead added successfully!", [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
+        Alert.alert('Success', 'Lead added successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
-        Alert.alert("Error", data.message || "Something went wrong.");
+        Alert.alert('Error', data.message || 'Something went wrong.');
       }
     } catch (error) {
-      console.error("Add Lead Error:", error);
-      Alert.alert("Error", "Failed to add lead.");
+      Alert.alert('Error', 'Failed to add lead.');
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.container}>
+    <LinearGradient colors={['#f8fafc', '#f1f5f9']} style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={styles.header}>➕ Add New Lead</Text>
+        {/* Header */}
+        <Text style={styles.title}>Add Leads</Text>
+        <Text style={styles.subtitle}>Add leads manually or in bulk</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          placeholderTextColor="#9ca3af"
-          value={formData.name}
-          onChangeText={(t) => handleChange("name", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Company Name"
-          placeholderTextColor="#9ca3af"
-          value={formData.company_name}
-          onChangeText={(t) => handleChange("company_name", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="City"
-          placeholderTextColor="#9ca3af"
-          value={formData.city}
-          onChangeText={(t) => handleChange("city", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="State"
-          placeholderTextColor="#9ca3af"
-          value={formData.state}
-          onChangeText={(t) => handleChange("state", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contact Number"
-          placeholderTextColor="#9ca3af"
-          keyboardType="phone-pad"
-          value={formData.contect_1}
-          onChangeText={(t) => handleChange("contect_1", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Inquiry Type"
-          placeholderTextColor="#9ca3af"
-          value={formData.inquery_type}
-          onChangeText={(t) => handleChange("inquery_type", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#9ca3af"
-          value={formData.email}
-          onChangeText={(t) => handleChange("email", t)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Requirement"
-          placeholderTextColor="#9ca3af"
-          value={formData.requirement}
-          onChangeText={(t) => handleChange("requirement", t)}
-        />
-
-        {/* Progress Dropdown */}
-        <View style={styles.dropdownContainer}>
-          <Text style={styles.dropdownLabel}>Progress</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={formData.progress}
-              onValueChange={(itemValue) => handleChange("progress", itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#fff"
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'manual' && styles.activeTab,
+            ]}
+            onPress={() => setActiveTab('manual')}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'manual' && styles.activeTabText,
+              ]}
             >
-              <Picker.Item label="Cold" value="cold" />
-              <Picker.Item label="Warm" value="warm" />
-              <Picker.Item label="Hot" value="hot" />
-            </Picker>
-          </View>
+              Add Manually
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'bulk' && styles.activeTab]}
+            onPress={() => setActiveTab('bulk')}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'bulk' && styles.activeTabText,
+              ]}
+            >
+              Bulk Upload
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Active Dropdown */}
-        <View style={styles.dropdownContainer}>
-          <Text style={styles.dropdownLabel}>Active</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={formData.active}
-              onValueChange={(itemValue) => handleChange("active", itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#fff"
-            >
-              <Picker.Item label="Open" value="open" />
-              <Picker.Item label="Inprogressive" value="in progress" />
-              <Picker.Item label="Close" value="closed" />
-            </Picker>
-          </View>
-        </View>
+        {activeTab === 'manual' && (
+          <>
+            {/* Input Fields */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Customer Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.name}
+                onChangeText={t => handleChange('name', t)}
+              />
+            </View>
 
-        <TouchableOpacity
-          style={styles.submitButton}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitButtonText}>Save Lead</Text>
-          )}
-        </TouchableOpacity>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Company Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.company_name}
+                onChangeText={t => handleChange('company_name', t)}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>State</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.state}
+                onChangeText={t => handleChange('state', t)}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>City</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.city}
+                onChangeText={t => handleChange('city', t)}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Contact Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                keyboardType="phone-pad"
+                value={formData.contact_number}
+                onChangeText={t => handleChange('contact_number', t)}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Enquiry Type</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.enquiry_type}
+                  onValueChange={itemValue =>
+                    handleChange('enquiry_type', itemValue)
+                  }
+                >
+                  <Picker.Item label="Placeholder" value="" />
+                  <Picker.Item label="Product" value="product" />
+                  <Picker.Item label="Service" value="service" />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Email ID</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.email}
+                onChangeText={t => handleChange('email', t)}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Requirement</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                multiline
+                placeholder="Placeholder"
+                placeholderTextColor="#9ca3af"
+                value={formData.requirement}
+                onChangeText={t => handleChange('requirement', t)}
+              />
+            </View>
+
+            {/* Buttons */}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.addButtonText}>Add Lead</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  header: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  subtitle: { color: '#6b7280', marginBottom: 20 },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#e2e8f0',
+    borderRadius: 8,
+    overflow: 'hidden',
     marginBottom: 20,
   },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  tabText: { color: '#475569', fontWeight: '600' },
+  activeTab: { backgroundColor: '#047857' },
+  activeTabText: { color: '#fff' },
+  formGroup: { marginBottom: 15 },
+  label: { color: '#1e293b', marginBottom: 6, fontWeight: '600' },
   input: {
-    backgroundColor: "#1e293b",
-    color: "#fff",
-    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderColor: '#cbd5e1',
+    borderWidth: 1,
+    borderRadius: 8,
     padding: 10,
-    marginBottom: 12,
+    color: '#111827',
   },
-  dropdownContainer: {
-    marginBottom: 12,
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderColor: '#cbd5e1',
+    borderWidth: 1,
+    borderRadius: 8,
   },
-  dropdownLabel: {
-    color: "#cbd5e1",
-    marginBottom: 4,
-    fontWeight: "600",
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
   },
-  pickerWrapper: {
-    backgroundColor: "#1e293b",
-    borderRadius: 10,
-  },
-  picker: {
-    color: "#fff",
-  },
-  submitButton: {
-    backgroundColor: "#10b981",
+  addButton: {
+    backgroundColor: '#047857',
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 8,
     marginTop: 20,
   },
-  submitButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
+  addButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '700',
     fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#fff',
+    borderColor: '#047857',
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  cancelButtonText: {
+    textAlign: 'center',
+    color: '#047857',
+    fontWeight: '600',
   },
 });
 

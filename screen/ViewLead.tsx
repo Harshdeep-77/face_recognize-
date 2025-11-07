@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Assuming you have vector-icons installed
@@ -43,7 +43,7 @@ const  ViewLead = ({ route, navigation }) => {
     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
       
      
-
+     <ScrollView contentContainerStyle={styles.container}> 
       <View style={styles.profileHeader}>
         {/* <Icon name="person-circle-outline" size={80} color="#fff" /> */}
         <Text style={styles.name}>{user.name}</Text>
@@ -62,15 +62,52 @@ const  ViewLead = ({ route, navigation }) => {
         <DetailRow 
           icon="at-outline" 
           label="Username" 
-          value={user.username} 
+          value={user.name} 
         />
-
+              <DetailRow 
+          icon="at-outline" 
+          label="Email" 
+          value={user.email} 
+        />
         <DetailRow 
           icon="business-outline" 
           label="Company Alias" 
-          value={user.company_alias} 
+          value={user.company_name} 
         />
-        
+        <DetailRow 
+          icon="business-outline" 
+          label="City" 
+          value={user.city} 
+        />
+        <DetailRow 
+          icon="business-outline" 
+          label="State" 
+          value={user.state} 
+        /><DetailRow 
+          icon="business-outline" 
+          label="Status" 
+          value={user.stage} 
+        />
+        <DetailRow 
+          icon="business-outline" 
+          label="contact" 
+          value={user.contact_1} 
+        />
+        <DetailRow 
+          icon="business-outline" 
+          label="Requirment" 
+          value={user.requirement} 
+        />
+        <DetailRow 
+          icon="business-outline" 
+          label="Assigned to" 
+          value={user.assign_to} 
+        />
+        <DetailRow 
+          icon="business-outline" 
+          label="Progress" 
+          value={user.progress} 
+        />
         {/* You can add more details here if your API provides them (e.g., email, phone) */}
         
       </View>
@@ -83,6 +120,8 @@ const  ViewLead = ({ route, navigation }) => {
         {/* <Icon name="create-outline" size={20} color="#fff" /> */}
         <Text style={styles.editButtonText}>Edit Profile</Text>
       </TouchableOpacity>
+
+      </ScrollView>
       
     </LinearGradient>
   );
@@ -92,7 +131,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     padding: 20,
-    alignItems: 'center',
+    // alignItems: 'center',
   },
   backButton: {
     flexDirection: 'row',
