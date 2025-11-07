@@ -9,41 +9,101 @@ import {
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  NavigationProp,
+} from '@react-navigation/native';
 
-const stats = [
-  { id: '1', label: 'Total User', value: '1,249', color: '#3b82f6' },
-  { id: '2', label: 'Present', value: '856', color: '#10b981' },
-  { id: '3', label: 'Closed', value: '760', color: '#22c55e' },
-  { id: '4', label: 'Absent', value: '51', color: '#f97316' },
-];
+// Type for team members (recent leads list)
+type TeamMember = {
+  id: string;
+  name: string;
+  status: string;
+};
 
-export default function DashboardScreen() {
-  const navigation = useNavigation();
+// Type for lead stats (from API)
+type LeadStats = {
+  total_leads: number;
+  open_leads: number;
+  closed_leads: number;
+  in_progress_leads: number;
+  unassigned_leads?: number;
+};
+
+// Define props for navigation
+type RootStackParamList = {
+  AddLeadScreen: undefined;
+  ShowAllLeadScreen: undefined;
+  AssignLeadScreen: undefined;
+  Markattendance: undefined;
+  Registration: undefined;
+  UserList: undefined;
+};
+
+const DashboardScreen: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute();
 
-  const [teamMembers, setTeamMembers] = useState([
+  const [leadStats, setLeadStats] = useState<LeadStats>({
+    total_leads: 0,
+    open_leads: 0,
+    closed_leads: 0,
+    in_progress_leads: 0,
+    unassigned_leads: 0,
+  });
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     { id: '1', name: 'Harsh Deep', status: 'Active' },
     { id: '2', name: 'Aryan Verma', status: 'Inactive' },
     { id: '3', name: 'Diya Patel', status: 'Active' },
   ]);
 
   useEffect(() => {
-    if (route.params?.newUser) {
-      const newUser = {
-        id: Date.now().toString(),
-        name: route.params.newUser,
-        status: 'Active',
-      };
-      setTeamMembers(prev => [newUser, ...prev]);
-    }
-  }, [route.params?.newUser]);
+    const fetchLeadCounts = async () => {
+      try {
+        setLoading(true);
+        const username = 'yogesh123@';
+        const alias_name = 'ed';
+        const API_URL = `http://192.168.1.20:8000/lead/count_leads?alias_name=${alias_name}&username=${encodeURIComponent(
+          username,
+        )}`;
+
+        const response = await fetch(API_URL, {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+        });
+
+        const data = await response.json();
+        console.log('Lead Count Data:', data);
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch stats');
+        }
+
+        setLeadStats(data);
+      } catch (err: any) {
+        console.error('Error fetching stats:', err);
+        setError('Unable to load stats');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeadCounts();
+  }, []);
 
   return (
     <LinearGradient colors={['#f0f9ff', '#ffffff']} style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ===== HEADER ===== */}
-        <LinearGradient colors={['#fff', '#b9bae4ff']} style={styles.headerContainer}>
+        <LinearGradient
+          colors={['#fff', '#b9bae4ff']}
+          style={styles.headerContainer}
+        >
           <View style={styles.headerLeft}>
             <Image
               source={require('../logo/skyound.jpg')}
@@ -53,17 +113,63 @@ export default function DashboardScreen() {
         </LinearGradient>
 
         {/* ===== OVERVIEW SECTION ===== */}
-        <Text style={styles.sectionTitle}>📊 Overview</Text>
-        <View style={styles.statsContainer}>
-          {stats.map(item => (
-            <View
-              key={item.id}
-              style={[styles.card, { backgroundColor: item.color }]}
+        <Text style={styles.sectionTitle}>📊 Lead Overview</Text>
+
+        {loading ? (
+          <Text style={{ textAlign: 'center', color: '#555' }}>
+            Loading stats...
+          </Text>
+        ) : error ? (
+          <Text style={{ textAlign: 'center', color: 'red' }}>{error}</Text>
+        ) : (
+          <View style={styles.statsContainer}>
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: '#10b981' }]}
+              onPress={() =>
+                navigation.navigate('ShowAllLeadScreen', { filter: 'all' })
+              }
             >
-              <Text style={styles.value}>{item.value}</Text>
-              <Text style={styles.label}>{item.label}</Text>
-            </View>
-          ))}
+              <Text style={styles.value}>{leadStats.total_leads}</Text>
+              <Text style={styles.label}>Total Leads</Text>
+            </TouchableOpacity>
+            
+              <TouchableOpacity
+              style={[styles.card, { backgroundColor: '#10b981' }]}
+              onPress={() =>
+                navigation.navigate('ShowAllLeadScreen', { filter: 'in progress' })
+              }
+            >
+              <Text style={styles.value}>{leadStats.in_progress_leads}</Text>
+              <Text style={styles.label}>In_progress</Text>
+            </TouchableOpacity>
+             
+              <TouchableOpacity
+              style={[styles.card, { backgroundColor: '#10b981' }]}
+              onPress={() =>
+                navigation.navigate('ShowAllLeadScreen', { filter: 'closed' })
+              }
+            >
+              <Text style={styles.value}>{leadStats. closed_leads}</Text>
+              <Text style={styles.label}>Closed</Text>
+            </TouchableOpacity>
+ 
+
+           <TouchableOpacity
+              style={[styles.card, { backgroundColor: '#10b981' }]}
+              onPress={() =>
+                navigation.navigate('ShowAllLeadScreen', { filter: 'in progress' })
+              }
+            >
+              <Text style={styles.value}>{leadStats.open_leads}</Text>
+              <Text style={styles.label}>Pending</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ===== LEAD MANAGEMENT SECTION ===== */}
+
+        <Text style={styles.sectionTitle}> Lead Management</Text>
+        <View style={styles.leadContainer}>
           <TouchableOpacity
             style={[styles.card, { backgroundColor: '#6366f1' }]}
             onPress={() => navigation.navigate('Registration')}
@@ -79,11 +185,6 @@ export default function DashboardScreen() {
           >
             <Text style={styles.label}>User List</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* ===== LEAD MANAGEMENT SECTION ===== */}
-        <Text style={styles.sectionTitle}>🎯 Lead Management</Text>
-        <View style={styles.leadContainer}>
           <TouchableOpacity
             style={[styles.leadCard, { backgroundColor: '#3b82f6' }]}
             onPress={() => navigation.navigate('AddLeadScreen')}
@@ -109,8 +210,8 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ===== ATTENDANCE SECTION ===== */}
-        <Text style={styles.sectionTitle}>🕒 Attendance</Text>
+        {/* ===== =======================================ATTENDANCE SECTION ===== */}
+        <Text style={styles.sectionTitle}> Attendance</Text>
         <View style={styles.leadContainer}>
           <TouchableOpacity
             style={[styles.leadCard, { backgroundColor: '#8b5cf6' }]}
@@ -122,12 +223,12 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ===== RECENT LEADS SECTION ===== */}
-        <Text style={styles.subHeader}>📌 Recent Leads</Text>
+        {/* ================================================== RECENT LEADS SECTION == */}
+        <Text style={styles.subHeader}>Recent Leads</Text>
         <View style={styles.listContainer}>
           <FlatList
             data={teamMembers}
-            keyExtractor={i => i.id}
+            keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <View style={styles.memberRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -149,8 +250,11 @@ export default function DashboardScreen() {
       </ScrollView>
     </LinearGradient>
   );
-}
+};
 
+export default DashboardScreen;
+
+// =================== STYLES ===================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
@@ -208,7 +312,6 @@ const styles = StyleSheet.create({
   value: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
   label: { color: '#f1f5f9', fontSize: 14, marginTop: 4 },
 
-  /* LEAD SECTION */
   leadContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -231,7 +334,6 @@ const styles = StyleSheet.create({
   cardEmoji: { fontSize: 30, marginBottom: 6 },
   cardText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 
-  /* RECENT LEADS */
   subHeader: {
     color: '#1e293b',
     fontSize: 20,

@@ -12,7 +12,7 @@ import {
   Alert, 
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 type Lead = {
   id: string;
@@ -36,7 +36,10 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedStatus, setSelectedStatus] = useState('open');
+
+  const route=useRoute();
+  const filterParm=(route.params as {filter?:String})?.filter;
+  const [selectedStatus, setSelectedStatus] = useState(filterParm ||'open');
 
   const [menuForId, setMenuForId] = useState<string | null>(null);
   // const[salesman_list,setSalesman_list]=useState(true);
@@ -64,7 +67,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       });
 
       const data = await response.json();
-      console.log('Fetched Lead Data:', data);
+      // console.log('Fetched Lead Data:', data);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -162,7 +165,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     setMenuForId(null);
     Alert.alert(
       'Close Lead',
-      `Are you sure you want to close "${lead.name}"?`,
+      `Are you sure you want to close `,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Yes, Close', onPress: () => closeLeadOnServer(lead.id) },
@@ -330,7 +333,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
               setMenuForId(null);
               Alert.alert(
                 'Delete Lead',
-                `Are you sure you want to delete "${item.name}"?`,
+                `Are you sure you want to delete`,
                 [
                   { text: 'Cancel', style: 'cancel' },
                   {
@@ -363,39 +366,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       )}
     </LinearGradient>
   );
-
-  //drop down menu for assign button cllic
-
-  //   {showAssignModal && (
-  //   <View style={styles.modalOverlay}>
-  //     <View style={styles.modalBox}>
-  //       <Text style={styles.modalTitle}>Assign to Salesman</Text>
-  //       <FlatList
-  //         data={salesmen}
-  //         keyExtractor={(item, index) => index.toString()}
-  //         renderItem={({ item }) => (
-  //           <TouchableOpacity
-  //             style={styles.radioOption}
-  //             onPress={() => {
-  //               console.log('Selected salesman:', item.username);
-  //               setShowAssignModal(false);
-  //               // You can call another API here to assign lead
-  //             }}
-  //           >
-  //             <Text style={styles.radioLabel}>{item.name}</Text>
-  //           </TouchableOpacity>
-  //         )}
-  //       />
-
-  //       <TouchableOpacity
-  //         style={[styles.button, { backgroundColor: '#ef4444' }]}
-  //         onPress={() => setShowAssignModal(false)}
-  //       >
-  //         <Text style={styles.buttonText}>Cancel</Text>
-  //       </TouchableOpacity>
-  //     </View>
-  //   </View>
-  // )}
+ 
 
   if (loading) {
     return (
@@ -442,7 +413,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
       {/* Status Filter */}
       <View style={styles.filterContainer}>
-        {['open', 'in progress', 'closed'].map(status => (
+        {['all','open', 'in progress', 'closed'].map(status => (
           <TouchableOpacity
             key={status}
             style={[
@@ -480,7 +451,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={() => (
           <Text style={styles.emptyText}>
-            No leads found for "{selectedStatus}".
+            No leads found 
           </Text>
         )}
         // auto-close menu when scrolling (nice UX)
@@ -494,7 +465,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         Select team member to assign lead
       </Text>
 
-      {/* ✅ Tap row = select only */}
+      {/*  Tap row = select only */}
       <FlatList
         data={salesmen}
         keyExtractor={(item) => item.id.toString()}
@@ -518,7 +489,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         )}
       />
 
-      {/* ✅ Buttons */}
+      {/*  Buttons */}
       <View style={styles.modalButtonRow}>
         <TouchableOpacity
           style={[styles.modalButton, styles.cancelButton]}
