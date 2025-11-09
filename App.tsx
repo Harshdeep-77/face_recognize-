@@ -22,6 +22,7 @@ import AddLeadScreen from './screen/AddLeadScreen';
 import AssignLeadScreen from './screen/AssignLeadScreen';
 import ShowAllLeadScreen from "./screen/ShowAllLeadScreen";
 import ViewLead from "./screen/ViewLead";
+import EditLeadScreen from './screen/EditLeadScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -183,6 +184,16 @@ const App = () => {
               <Stack.Screen
               name="ViewLead"
               component={ViewLead}
+              options={{
+                title: 'skybound',
+                headerStyle: { backgroundColor: '#0f172a' },
+                headerTintColor: '#fff',
+              }}
+            />
+
+             <Stack.Screen
+              name="EditLeadScreen"
+              component={EditLeadScreen}
               options={{
                 title: 'skybound',
                 headerStyle: { backgroundColor: '#0f172a' },

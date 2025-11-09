@@ -8,9 +8,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
+
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 
 type Lead = {
   id: string;
@@ -23,7 +26,8 @@ type Lead = {
   next_followup: string | null;
   city: string;
   active: string;
-  stage:string;
+  stage: string;
+  state: string;
 };
 
 interface AllLeadsScreenProps {
@@ -46,6 +50,14 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedSalesman, setSelectedSalesman] = useState(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  // Filter Modal States
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [leadStatus, setLeadStatus] = useState('all');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [enquiryType, setEnquiryType] = useState('');
+  const [assignedTo, setAssignedTo] = useState('');
 
   const fetchLeads = async (status = selectedStatus) => {
     try {
@@ -84,7 +96,8 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           city: lead.city,
           requirement: lead.requirement,
           // active: lead.active,
-          stage:lead.stage,
+          stage: lead.stage,
+          state: lead.state,
         }));
         setLeads(mappedLeads);
       } else {
@@ -216,13 +229,14 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       const username = 'yogesh123@';
       const alias_name = 'ed';
 
-      const API_URL = `http://192.168.1.20:8000/lead/assign?username=${encodeURIComponent(
+      const API_URL = `http://192.168.1.20:8000/lead/assign_lead?username=${encodeURIComponent(
         username,
-      )}&alias_name=${alias_name}&assign_to=${encodeURIComponent(
+      )}&company_alise=${alias_name}&assiged_to=${encodeURIComponent(
         salesmanUsername,
       )}&lead_id=${encodeURIComponent(leadId)}`;
 
       console.log('Assign API URL:', API_URL);
+      // console.log('Salesman API response data:', JSON.stringify(data, null, 2));
 
       const response = await fetch(API_URL, {
         method: 'PUT',
@@ -246,6 +260,33 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     } catch (error: any) {
       console.error('Assign Lead Error:', error);
       Alert.alert(' Error', error.message || 'Something went wrong.');
+    }
+  };
+
+  // api for update lead =============================
+  const updateLeadOnServer = async (leadId, updatedData) => {
+    try {
+      const response = await fetch(
+        `https://your-api-url.com/updateLead/${leadId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedData),
+        },
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Lead updated successfully!');
+        return data;
+      } else {
+        Alert.alert('Error', data.message || 'Failed to update lead.');
+      }
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      Alert.alert('Error', 'Something went wrong.');
     }
   };
 
@@ -318,7 +359,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
             style={styles.menuItem}
             onPress={() => {
               setMenuForId(null);
-              navigation.navigate('EditLead', { lead: item });
+              navigation.navigate('EditLeadScreen', { lead: item });
             }}
           >
             <Text style={styles.menuItemText}>Edit</Text>
@@ -382,6 +423,71 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     );
   }
 
+  const applyFilters = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const username = 'yogesh123@';
+      const alias_name = 'ed';
+
+      const params = new URLSearchParams({
+        username,
+        alias_name,
+        stage: leadStatus || '',
+        state: state || '',
+        city: city || '',
+        Enquiry_type: enquiryType || '',
+        assigned_to: assignedTo || '',
+      });
+
+      const API_URL = `http://192.168.1.20:8000/lead/filter_leads?${params.toString()}`;
+
+      console.log('Filter API URL:', API_URL);
+
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Filter Leads API Response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to apply filters');
+      }
+
+      if (Array.isArray(data.leads)) {
+        const mappedLeads: Lead[] = data.leads.map((lead: any) => ({
+          id: String(lead.id),
+          name: lead.name,
+          email: lead.email || 'N/A',
+          contact_1: lead.contact_1 || 'N/A',
+          status: lead.status || 'Unknown',
+          company_name: lead.company_name || 'N/A',
+          assigned_to: lead.assigned_to || 'N/A',
+          next_followup: lead.next_followup,
+          city: lead.city,
+          requirement: lead.requirement,
+          stage: lead.stage,
+        }));
+        setLeads(mappedLeads);
+      } else {
+        console.warn('Unexpected API format:', data);
+        setLeads([]);
+      }
+
+      setShowFilterModal(false);
+    } catch (err: any) {
+      console.error('Filter API Error:', err);
+      Alert.alert('Error', err.message || 'Failed to apply filters');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
       {/* Top Bar */}
@@ -395,7 +501,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.filterButtonTop}
-          onPress={() => Alert.alert('Filter', 'Filter feature coming soon!')}
+          onPress={() => setShowFilterModal(true)}
         >
           <Text style={styles.filterButtonText}>🔍 Filter</Text>
         </TouchableOpacity>
@@ -412,7 +518,10 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
               styles.filterButton,
               selectedStatus === status && styles.activeFilter,
             ]}
-            onPress={() => setSelectedStatus(status)}
+            onPress={() => {
+              setSelectedStatus(status);
+              setLeadStatus(status);
+            }}
           >
             <Text
               style={[
@@ -509,6 +618,114 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
                 <Text style={styles.assignButtonText}>Assign</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      )}
+
+      {/* fitlet button form    +==================================================== */}
+      {showFilterModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalHeader}>Filters</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Lead Status */}
+              <Text style={styles.label}>Lead Status</Text>
+              <View style={styles.radioGroup}>
+                {['all', 'open', 'in progress', 'closed'].map(status => (
+                  <TouchableOpacity
+                    key={status}
+                    style={styles.radioOption}
+                    onPress={() => {
+                      setLeadStatus(status);
+                      setSelectedStatus(status);
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        leadStatus === status && styles.radioOuterSelected,
+                      ]}
+                    >
+                      {leadStatus === status && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
+                    <Text style={styles.radioLabel}>
+                      {status.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Dropdown Filters */}
+              <Text style={styles.label}>State</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={state}
+                  onValueChange={value => setState(value)}
+                  dropdownIconColor="#fff"
+                >
+                  <Picker.Item label="Select" value="" />
+                  <Picker.Item label="Delhi" value="Delhi" />
+                  <Picker.Item label="Maharashtra" value="Maharashtra" />
+                </Picker>
+              </View>
+
+              <Text style={styles.label}>City</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={city}
+                  onValueChange={value => setCity(value)}
+                  dropdownIconColor="#fff"
+                >
+                  <Picker.Item label="Select" value="" />
+                  <Picker.Item label="Mumbai" value="Mumbai" />
+                  <Picker.Item label="Pune" value="Pune" />
+                </Picker>
+              </View>
+
+              <Text style={styles.label}>Enquiry Type</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={enquiryType}
+                  onValueChange={value => setEnquiryType(value)}
+                  dropdownIconColor="#fff"
+                >
+                  <Picker.Item label="Select" value="" />
+                  <Picker.Item label="Product" value="product" />
+                  <Picker.Item label="Service" value="service" />
+                </Picker>
+              </View>
+
+              <Text style={styles.label}>Assigned To</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={assignedTo}
+                  onValueChange={value => setAssignedTo(value)}
+                  dropdownIconColor="#fff"
+                >
+                  <Picker.Item label="Select" value="" />
+                  <Picker.Item label="Yogesh" value="yogesh" />
+                  <Picker.Item label="Rahul" value="rahul" />
+                </Picker>
+              </View>
+
+              {/*filter  ======================================= Buttons */}
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={applyFilters}
+              >
+                <Text style={styles.applyText}>Apply Filters</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowFilterModal(false)}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -752,4 +969,97 @@ const styles = StyleSheet.create({
   },
 
   emptyText: { color: '#94a3b8', textAlign: 'center', marginTop: 30 },
+
+  // filter form styles =============================================================================================
+
+  // Filter Modal Styles
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+    zIndex: 200,
+  },
+  modalBox: {
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: '80%',
+  },
+  modalHeader: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  label: {
+    color: '#cbd5e1',
+    fontWeight: '600',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  pickerContainer: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#64748b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioOuterSelected: {
+    borderColor: '#10b981',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#10b981',
+  },
+  radioLabel: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  applyButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginTop: 16,
+  },
+  applyText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  cancelButton: {
+    borderRadius: 10,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  cancelText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
 });

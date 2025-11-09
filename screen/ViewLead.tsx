@@ -11,6 +11,7 @@ type User = {
   role: string;
   company_alias: string;
   username: string;
+  state:string;
 };
 
 // Define the expected route parameter structure
@@ -27,7 +28,7 @@ interface UserProfileScreenProps {
 
 const  ViewLead = ({ route, navigation }) => {
   const { user } = route.params;
-
+console.log("____________",user)
   // --- Helper function for rendering a detail row ---
   const DetailRow = ({ icon, label, value }: { icon: string, label: string, value: string }) => (
     <View style={styles.detailRow}>

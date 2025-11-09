@@ -201,13 +201,7 @@ const DashboardScreen: React.FC = () => {
             <Text style={styles.cardText}>Show Leads</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.leadCard, { backgroundColor: '#f59e0b' }]}
-            onPress={() => navigation.navigate('AssignLeadScreen')}
-          >
-            <Text style={styles.cardEmoji}>👥</Text>
-            <Text style={styles.cardText}>Assign Lead</Text>
-          </TouchableOpacity>
+         
         </View>
 
         {/* ===== =======================================ATTENDANCE SECTION ===== */}
