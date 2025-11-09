@@ -12,7 +12,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const progressOption=["hot","warm","cold"];
 const stageOption=["open","closed","in progress"]
@@ -49,6 +49,8 @@ const EditLeadScreen = () => {
 
   const handleUpdate = async () => {
     try {
+           const token = await AsyncStorage.getItem('userToken'); 
+
       setLoading(true);
        
 
@@ -64,7 +66,9 @@ const EditLeadScreen = () => {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
+          ,
+          Authorization:`Bearer ${token}`
         },
       });
 

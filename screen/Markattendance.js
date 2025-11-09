@@ -18,9 +18,14 @@ export default function MarkAttendanceScreen() {
   }, []);
 
   const fetchAttendance = async () => {
+      const token = await AsyncStorage.getItem('userToken'); 
     try {
+
       const response = await fetch(
         'http://192.168.1.20:8000/attendence/attendence',
+        // {
+        //   headers: Authorization:`Bearer ${token}` ;
+        // }
       );
       const data = await response.json();
       setAttendanceData(data);

@@ -13,6 +13,7 @@ import {
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 // import { Picker } from 'react-native-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegistrationScreen({ navigation }) {
   const [companyAlias, setCompanyAlias] = useState('');
@@ -29,8 +30,13 @@ export default function RegistrationScreen({ navigation }) {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
+          const token = await AsyncStorage.getItem('userToken'); 
         const response = await fetch(
           'http://192.168.1.20:8000/companyadmin/role',
+          {
+            method:'GET',
+            headers: {Authorization:`Bearer ${token}`}
+          }
         );
         const data = await response.json();
         setRoles(data); // Example response: [{id:1, role:'Admin'}, {id:2, role:'HR'}]

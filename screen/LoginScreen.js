@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { use, useState } from 'react';
 import {
   View,
@@ -10,11 +11,15 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+
+// import api from '../interceptor'
 import LinearGradient from 'react-native-linear-gradient';
 
 export default function LoginScreen({ onLogin, navigation }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const base_url = 'http://192.168.1.20:8000';
+  const [username, setUsername] = useState('yogesh123@');
+  const [password, setPassword] = useState('Admin123@');
+  const [alias, setAlias] = useState('ed');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -25,34 +30,32 @@ export default function LoginScreen({ onLogin, navigation }) {
     setLoading(true);
 
     try {
-      const query = `username=${username}&password=${password}`;
-      const response = await fetch(
-        `http://192.168.1.20:8000/companyadmin/login?${query}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      setAlias('ed');
+      const query = `username=${username}&password=${password}&alias_name=${alias}`;
+      const response = await fetch(`${base_url}/companyadmin/login?${query}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
-      console.log('Login response status:', response.status);
-      console.log('respose', response);
-      console.log('Login response headers:', response.headers);
+      });
       if (response.ok) {
         const resData = await response.json();
-        console.log('Response data:', resData);
-
-        const role = resData?.data?.role?.trim().toLowerCase();
-
-        if (role === 'employee') {
-          Alert.alert('Welcome!', 'You are logged in as Employee');
-          onLogin(role, username);
-        } else if (role === 'admin' || role === 'hr') {
-          Alert.alert('Login Successful!', `Welcome ${role.toUpperCase()}`);
-          onLogin(role);
-        } else {
-          Alert.alert('Login Failed', 'Invalid role received from server');
-        }
+        saveToken(resData.token);
+        console.log("datdtata",resData)
+        saveUserDetails(resData['role'])
+        const role = resData?.role?.trim().toLowerCase();
+        
+          if (role == 'salesman') {
+            Alert.alert('Welcome!', 'You are logged in as Salesman', [
+              {
+                text: 'OK',
+                onPress: () => onLogin(role, username),
+              },
+            ]);
+          } else {
+            onLogin(role, username);
+          }
+       
         //   Alert.alert("Login Successful!");
         //   onLogin();
         // } else {
@@ -66,6 +69,23 @@ export default function LoginScreen({ onLogin, navigation }) {
     }
   };
 
+  const saveToken = async token => {
+    try {
+      await AsyncStorage.setItem('userToken', token);
+      console.log('Token saved successfully');
+    } catch (error) {
+      console.error('Error saving token:', error);
+    }
+  };
+  const saveUserDetails = async (userdetail) => {
+    console.log("_________", userdetail)
+    try {
+      await AsyncStorage.setItem('role', userdetail);
+      console.log('user Role saved successfully');
+    } catch (error) {
+      console.error('Error saving user details:', error);
+    }
+  };
   return (
     <LinearGradient
       colors={['#0f172a', '#1e293b', '#334155']}
@@ -115,7 +135,7 @@ export default function LoginScreen({ onLogin, navigation }) {
               <Text style={styles.buttonText}>LOGIN</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => onLogin('admin', 'Harshdeep')} 
             style={{
               backgroundColor: '#22c55e',
@@ -127,7 +147,7 @@ export default function LoginScreen({ onLogin, navigation }) {
             <Text style={{ color: '#fff', textAlign: 'center' }}>
               Skip Login (Test)
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <Text style={styles.footerText}>
             Don’t have an account?{' '}

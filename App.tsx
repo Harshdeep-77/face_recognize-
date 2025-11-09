@@ -20,8 +20,8 @@ import Employeeattendace from './screen/Employeeattendace';
 import UpdateEmployee from './screen/UpdateEmployee';
 import AddLeadScreen from './screen/AddLeadScreen';
 import AssignLeadScreen from './screen/AssignLeadScreen';
-import ShowAllLeadScreen from "./screen/ShowAllLeadScreen";
-import ViewLead from "./screen/ViewLead";
+import ShowAllLeadScreen from './screen/ShowAllLeadScreen';
+import ViewLead from './screen/ViewLead';
 import EditLeadScreen from './screen/EditLeadScreen';
 
 const Stack = createNativeStackNavigator();
@@ -34,13 +34,13 @@ const App = () => {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showRegst, setShowRegst] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
-  const[userRole,setUserRole]=useState(null);
-  const [username,setUsername]=useState('');
-  const handleLogin = (role,username) => {
+  const [userRole, setUserRole] = useState(null);
+  const [username, setUsername] = useState('');
+  const handleLogin = (role, username) => {
     setIsLoggedIn(true);
     setUserRole(role);
     setUsername(username);
-  }
+  };
 
   return (
     <NavigationContainer>
@@ -54,46 +54,89 @@ const App = () => {
             }}
           >
             {props => (
-              <LoginScreen {...props} onLogin={(role,username) => handleLogin(role,username)} />
+              <LoginScreen
+                {...props}
+                onLogin={(role, username) => handleLogin(role, username)}
+              />
             )}
           </Stack.Screen>
-        ) :  userRole === 'employee' && username ?(
-              <Stack.Screen
-          name="Employeeattendace"
-          component={Employeeattendace}
-          initialParams={{username}}
-          options={{
-            title: 'My Attendance',
-            headerStyle: { backgroundColor: '#0f172a' },
-            headerTintColor: '#fff',
-            headerRight: () => (
-              <TouchableOpacity
-                onPress={() => {
-                  setIsLoggedIn(false);
-                  setUserRole(null);
-                }}
-                style={{
-                  backgroundColor: '#ef4444',
-                  paddingVertical: 6,
-                  paddingHorizontal: 12,
-                  borderRadius: 8,
-                  marginRight: 10,
-                }}
-              >
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Logout</Text>
-              </TouchableOpacity>
-            ),
-          }}
-          //  children= {(props) => <Employeeattendace {...props} username={username} />}
-        />
-        
-
+        ) : userRole === 'employee' && username ? (
+          <Stack.Screen
+            name="Employeeattendace"
+            component={Employeeattendace}
+            initialParams={{ username }}
+            options={{
+              title: 'My Attendance',
+              headerStyle: { backgroundColor: '#0f172a' },
+              headerTintColor: '#fff',
+              headerRight: () => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsLoggedIn(false);
+                    setUserRole(null);
+                  }}
+                  style={{
+                    backgroundColor: '#ef4444',
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    marginRight: 10,
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>
+                    Logout
+                  </Text>
+                </TouchableOpacity>
+              ),
+            }}
+            //  children= {(props) => <Employeeattendace {...props} username={username} />}
+          />
+        ) : userRole === 'salesman' ? (
+          <> 
+          <Stack.Screen
+            name="ShowAllLeadScreen"
+            component={ShowAllLeadScreen}
+            options={{
+              title: 'Leads',
+              headerStyle: { backgroundColor: '#0f172a' },
+              headerTintColor: '#fff',
+              headerRight: () => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsLoggedIn(false);
+                  }}
+                  style={{
+                    backgroundColor: '#ef4444',
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    marginRight: 10,
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>
+                    Logout
+                  </Text>
+                </TouchableOpacity>
+              ),
+            }}
+          />
+           <Stack.Screen
+              name="EditLeadScreen"
+              component={EditLeadScreen}
+              options={{
+                title: 'skybound',
+                headerStyle: { backgroundColor: '#0f172a' },
+                headerTintColor: '#fff',
+              }}
+            />
+          </>
+          
         ) : (
           <>
             <Stack.Screen
               name="Dashboard"
               component={DashboardScreen}
-              initialParams={{username}}
+              initialParams={{ username }}
               options={{
                 title: 'My Dashboard',
                 headerStyle: { backgroundColor: '#3b82f6' },
@@ -163,7 +206,7 @@ const App = () => {
                 headerTintColor: '#fff',
               }}
             />
-             <Stack.Screen
+            <Stack.Screen
               name="AssignLeadScreen"
               component={AssignLeadScreen}
               options={{
@@ -172,16 +215,16 @@ const App = () => {
                 headerTintColor: '#fff',
               }}
             />
-             <Stack.Screen
+            <Stack.Screen
               name="ShowAllLeadScreen"
-              component={ ShowAllLeadScreen}
+              component={ShowAllLeadScreen}
               options={{
                 title: 'skybound',
                 headerStyle: { backgroundColor: '#0f172a' },
                 headerTintColor: '#fff',
               }}
             />
-              <Stack.Screen
+            <Stack.Screen
               name="ViewLead"
               component={ViewLead}
               options={{
@@ -191,7 +234,7 @@ const App = () => {
               }}
             />
 
-             <Stack.Screen
+            <Stack.Screen
               name="EditLeadScreen"
               component={EditLeadScreen}
               options={{
@@ -200,7 +243,7 @@ const App = () => {
                 headerTintColor: '#fff',
               }}
             />
-            
+
             <Stack.Screen
               name="Markattendance"
               component={Markattendance}
@@ -217,12 +260,10 @@ const App = () => {
             headerStyle: { backgroundColor: "#0f172a" },
             headerTintColor: "#fff",
           }}/> */}
-
           </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
- 
   );
 };
 

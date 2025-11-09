@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Lead = {
   id: string;
@@ -58,11 +59,14 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [city, setCity] = useState('');
   const [enquiryType, setEnquiryType] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
+  const[userDetails,setUserDetails] = useState<string | null>(null);
+  const [menu,setMenu] = useState(['all', 'open', 'in progress', 'closed'])
 
   const fetchLeads = async (status = selectedStatus) => {
     try {
       setLoading(true);
       setError(null);
+      const token = await AsyncStorage.getItem('userToken');
 
       const username = 'yogesh123@';
       const alias_name = 'ed';
@@ -73,7 +77,10 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       )}`;
       const response = await fetch(API_URL, {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();
@@ -112,6 +119,17 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     }
   };
 
+  useEffect(()=> {
+    const fetchDetails = async ()=>{
+    const role = await AsyncStorage.getItem('role');
+    setUserDetails(role);
+    if(role == 'salesman')
+      setMenu(['in progress', 'closed'])
+    }
+    fetchDetails()
+    
+  })
+
   useFocusEffect(
     React.useCallback(() => {
       fetchLeads(selectedStatus);
@@ -148,6 +166,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
   const handleAssign = async (lead: Lead) => {
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const username = 'yogesh123@';
       const alias_name = 'ed';
 
@@ -158,6 +177,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -226,12 +246,12 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     salesmanUsername: string,
   ) => {
     try {
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
+      const token = await AsyncStorage.getItem('userToken');
 
-      const API_URL = `http://192.168.1.20:8000/lead/assign_lead?username=${encodeURIComponent(
-        username,
-      )}&company_alise=${alias_name}&assiged_to=${encodeURIComponent(
+      // const username = 'yogesh123@';
+      // const alias_name = 'ed';
+
+      const API_URL = `http://192.168.1.20:8000/lead/assign_lead?assiged_to=${encodeURIComponent(
         salesmanUsername,
       )}&lead_id=${encodeURIComponent(leadId)}`;
 
@@ -243,6 +263,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -250,8 +271,9 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       console.log('Assign Lead API Response:', data);
 
       if (!response.ok)
-        throw new Error(data.message || 'Failed to assign lead');
-
+        throw new Error(data.message || data.error);
+      if(data.error)
+        return Alert.alert(' Error', data.error);
       Alert.alert(' Success', 'Lead assigned successfully!');
       setShowAssignModal(false);
 
@@ -266,12 +288,15 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   // api for update lead =============================
   const updateLeadOnServer = async (leadId, updatedData) => {
     try {
+      const token = await AsyncStorage.getItem('userToken');
+
       const response = await fetch(
         `https://your-api-url.com/updateLead/${leadId}`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(updatedData),
         },
@@ -427,6 +452,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     try {
       setLoading(true);
       setError(null);
+       const token = await AsyncStorage.getItem('userToken'); 
 
       const username = 'yogesh123@';
       const alias_name = 'ed';
@@ -449,6 +475,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         method: 'GET',
         headers: {
           Accept: 'application/json',
+           Authorization:`Bearer ${token}` 
         },
       });
 
@@ -511,7 +538,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
       {/* Status Filter */}
       <View style={styles.filterContainer}>
-        {['all', 'open', 'in progress', 'closed'].map(status => (
+        {menu.map(status => (
           <TouchableOpacity
             key={status}
             style={[
@@ -632,7 +659,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
               {/* Lead Status */}
               <Text style={styles.label}>Lead Status</Text>
               <View style={styles.radioGroup}>
-                {['all', 'open', 'in progress', 'closed'].map(status => (
+                { menu.map(status => (
                   <TouchableOpacity
                     key={status}
                     style={styles.radioOption}
@@ -658,58 +685,41 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
                 ))}
               </View>
 
-              {/* Dropdown Filters */}
               <Text style={styles.label}>State</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={state}
-                  onValueChange={value => setState(value)}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label="Select" value="" />
-                  <Picker.Item label="Delhi" value="Delhi" />
-                  <Picker.Item label="Maharashtra" value="Maharashtra" />
-                </Picker>
-              </View>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="Enter state"
+                placeholderTextColor="#94a3b8"
+                value={state}
+                onChangeText={setState}
+              />
 
               <Text style={styles.label}>City</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={city}
-                  onValueChange={value => setCity(value)}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label="Select" value="" />
-                  <Picker.Item label="Mumbai" value="Mumbai" />
-                  <Picker.Item label="Pune" value="Pune" />
-                </Picker>
-              </View>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="Enter city"
+                placeholderTextColor="#94a3b8"
+                value={city}
+                onChangeText={setCity}
+              />
 
               <Text style={styles.label}>Enquiry Type</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={enquiryType}
-                  onValueChange={value => setEnquiryType(value)}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label="Select" value="" />
-                  <Picker.Item label="Product" value="product" />
-                  <Picker.Item label="Service" value="service" />
-                </Picker>
-              </View>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="Enter enquiry type"
+                placeholderTextColor="#94a3b8"
+                value={enquiryType}
+                onChangeText={setEnquiryType}
+              />
 
               <Text style={styles.label}>Assigned To</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={assignedTo}
-                  onValueChange={value => setAssignedTo(value)}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label="Select" value="" />
-                  <Picker.Item label="Yogesh" value="yogesh" />
-                  <Picker.Item label="Rahul" value="rahul" />
-                </Picker>
-              </View>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="Enter name of assignee"
+                placeholderTextColor="#94a3b8"
+                value={assignedTo}
+                onChangeText={setAssignedTo}
+              />
 
               {/*filter  ======================================= Buttons */}
               <TouchableOpacity
@@ -1062,4 +1072,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
+  inputBox: {
+  backgroundColor: '#0f172a',
+  color: '#fff',
+  borderRadius: 10,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  marginBottom: 12,
+  borderWidth: 1,
+  borderColor: '#1e293b',
+},
+
 });

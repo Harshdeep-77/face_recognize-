@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 // Define a TypeScript type for your user
@@ -35,6 +36,7 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
     try {
       setLoading(true);
       setError(null);
+       const token = await AsyncStorage.getItem('userToken'); 
 
       const username = 'yogesh123@';
       const alias_name = 'ed';
@@ -43,7 +45,7 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json',Authorization:`Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -80,6 +82,8 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
   const deleteUser = async (username:string ) => {
     const companyAlias = 'ed'; // Replace with actual company alias if needed
     try {
+              const token = await AsyncStorage.getItem('userToken'); 
+
       Alert.alert(
         'Confirm Delete',
         `Are you sure you want to delete success?`,
@@ -95,7 +99,7 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
                 `http://192.168.1.20:8000/companyadmin/employee?Company_alias=${companyAlias}&username=${username}`,
                 {
                   method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json' , Authorization:`Bearer ${token}` },
                 },
               );
               console.log('Delete response status:', response.status);

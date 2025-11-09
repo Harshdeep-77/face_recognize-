@@ -44,7 +44,8 @@ console.log("____________",user)
     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
       
      
-     <ScrollView contentContainerStyle={styles.container}> 
+   <ScrollView contentContainerStyle={styles.scrollContent}>
+
       <View style={styles.profileHeader}>
         {/* <Icon name="person-circle-outline" size={80} color="#fff" /> */}
         <Text style={styles.name}>{user.name}</Text>
@@ -221,6 +222,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   }
+  ,scrollContent: {
+  padding: 20,
+  paddingBottom: 50, // gives some breathing room at the bottom
+},
+
 });
 
 export default ViewLead;

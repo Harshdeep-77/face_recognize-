@@ -14,13 +14,9 @@ import {
   useRoute,
   NavigationProp,
 } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Type for team members (recent leads list)
-type TeamMember = {
-  id: string;
-  name: string;
-  status: string;
-};
+
 
 // Type for lead stats (from API)
 type LeadStats = {
@@ -31,6 +27,7 @@ type LeadStats = {
   unassigned_leads?: number;
 };
 
+const token =  AsyncStorage.getItem('userToken');
 // Define props for navigation
 type RootStackParamList = {
   AddLeadScreen: undefined;
@@ -56,25 +53,21 @@ const DashboardScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    { id: '1', name: 'Harsh Deep', status: 'Active' },
-    { id: '2', name: 'Aryan Verma', status: 'Inactive' },
-    { id: '3', name: 'Diya Patel', status: 'Active' },
-  ]);
+ 
 
   useEffect(() => {
     const fetchLeadCounts = async () => {
       try {
         setLoading(true);
-        const username = 'yogesh123@';
-        const alias_name = 'ed';
-        const API_URL = `http://192.168.1.20:8000/lead/count_leads?alias_name=${alias_name}&username=${encodeURIComponent(
-          username,
-        )}`;
+          const token = await AsyncStorage.getItem('userToken'); 
+            
+        
+        const API_URL = `http://192.168.1.20:8000/lead/count_leads`;
 
         const response = await fetch(API_URL, {
           method: 'GET',
-          headers: { Accept: 'application/json' },
+          headers: { Accept: 'application/json', Authorization:`Bearer ${token}` },
+
         });
 
         const data = await response.json();
@@ -218,29 +211,7 @@ const DashboardScreen: React.FC = () => {
         </View>
 
         {/* ================================================== RECENT LEADS SECTION == */}
-        <Text style={styles.subHeader}>Recent Leads</Text>
-        <View style={styles.listContainer}>
-          <FlatList
-            data={teamMembers}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.memberRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={styles.avatar}>{item.name.charAt(0)}</Text>
-                  <Text style={styles.memberName}>{item.name}</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.memberStatus,
-                    { color: item.status === 'Active' ? '#10b981' : '#ef4444' },
-                  ]}
-                >
-                  {item.status}
-                </Text>
-              </View>
-            )}
-          />
-        </View>
+       
       </ScrollView>
     </LinearGradient>
   );
