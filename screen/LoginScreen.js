@@ -1,5 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { use, useState } from 'react';
+import Config from 'react-native-config';
+
+
+const base_url ="http:192.168.1.20:8000";// Config.API_URL;
 import {
   View,
   Text,
@@ -11,12 +15,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-
+import { getRequest, postRequest } from '../utils/api';
 // import api from '../interceptor'
 import LinearGradient from 'react-native-linear-gradient';
 
 export default function LoginScreen({ onLogin, navigation }) {
-  const base_url = 'http://192.168.1.20:8000';
+  // const base_url = 'http://192.168.1.20:8000';
   const [username, setUsername] = useState('yogesh123@');
   const [password, setPassword] = useState('Admin123@');
   const [alias, setAlias] = useState('ed');
@@ -31,31 +35,58 @@ export default function LoginScreen({ onLogin, navigation }) {
 
     try {
       setAlias('ed');
-      const query = `username=${username}&password=${password}&alias_name=${alias}`;
-      const response = await fetch(`${base_url}/companyadmin/login?${query}`, {
+      const payload = new URLSearchParams({
+        username:username,
+        password:password,
+        alias_name: 'ed',
+      }).toString();
+    
+      console.log("login payload", payload)
+      console.log("base url",base_url)
+      const response = await fetch(`${base_url}/companyadmin/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
         },
+        body:payload,
+      
       });
+      
       if (response.ok) {
-        const resData = await response.json();
-        saveToken(resData.token);
-        console.log("datdtata",resData)
-        saveUserDetails(resData['role'])
-        const role = resData?.role?.trim().toLowerCase();
+        const result = await response.json();
         
-          if (role == 'salesman') {
-            Alert.alert('Welcome!', 'You are logged in as Salesman', [
-              {
-                text: 'OK',
-                onPress: () => onLogin(role, username),
-              },
-            ]);
-          } else {
-            onLogin(role, username);
-          }
-       
+        console.log('.............', result);
+        const resData = result.data;
+        saveToken(resData.token);
+        console.log('datdtata', resData);
+        saveUserDetails(resData['role']);
+        const role = resData?.role?.trim().toLowerCase();
+
+        if (role == 'salesman') {
+          Alert.alert('Welcome!', 'You are logged in as Salesman', [
+            {
+              text: 'OK',
+              onPress: () => onLogin(role, username),
+            },
+          ]);
+        } else if(role == 'admin') {
+          Alert.alert('Welcome!', 'You are logged in as Admin', [
+            {
+              text: 'OK',
+              onPress: () => onLogin(role, username),
+            },
+          ])
+        }else if(role == 'implementationengineer'){
+          Alert.alert('Welcome!', 'You are logged in as Engineer', [
+            {
+              text: 'OK',
+              onPress: () => onLogin(role, username),
+            },
+          ])
+        
+        }
+
         //   Alert.alert("Login Successful!");
         //   onLogin();
         // } else {
@@ -77,8 +108,8 @@ export default function LoginScreen({ onLogin, navigation }) {
       console.error('Error saving token:', error);
     }
   };
-  const saveUserDetails = async (userdetail) => {
-    console.log("_________", userdetail)
+  const saveUserDetails = async userdetail => {
+    console.log('_________', userdetail);
     try {
       await AsyncStorage.setItem('role', userdetail);
       console.log('user Role saved successfully');

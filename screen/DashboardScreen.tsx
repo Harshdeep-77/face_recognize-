@@ -72,12 +72,13 @@ const DashboardScreen: React.FC = () => {
 
         const data = await response.json();
         console.log('Lead Count Data:', data);
+        console.log(data.data)
 
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch stats');
         }
 
-        setLeadStats(data);
+        setLeadStats(data.data);
       } catch (err: any) {
         console.error('Error fetching stats:', err);
         setError('Unable to load stats');

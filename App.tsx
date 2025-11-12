@@ -129,6 +129,15 @@ const App = () => {
                 headerTintColor: '#fff',
               }}
             />
+             <Stack.Screen
+              name="ViewLead"
+              component={ViewLead}
+              options={{
+                title: 'skybound',
+                headerStyle: { backgroundColor: '#0f172a' },
+                headerTintColor: '#fff',
+              }}
+            />
           </>
           
         ) : (

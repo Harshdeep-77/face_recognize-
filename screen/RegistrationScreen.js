@@ -26,20 +26,23 @@ export default function RegistrationScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [roles, setRoles] = useState([]);
+  const base_url='http://192.168.1.20:8000/'
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
           const token = await AsyncStorage.getItem('userToken'); 
         const response = await fetch(
-          'http://192.168.1.20:8000/companyadmin/role',
+          `${base_url}companyadmin/role`,
           {
             method:'GET',
             headers: {Authorization:`Bearer ${token}`}
           }
         );
         const data = await response.json();
-        setRoles(data); // Example response: [{id:1, role:'Admin'}, {id:2, role:'HR'}]
+        console.log("role is ",data);
+        setRoles(data.data); 
+        // Example response: [{id:1, role:'Admin'}, {id:2, role:'HR'}]
       } catch (error) {
         console.error('Error fetching roles:', error);
         Alert.alert('Error', 'Failed to fetch roles from server.');

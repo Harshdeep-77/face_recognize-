@@ -15,6 +15,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Dropdown } from 'react-native-element-dropdown';
+import { Pressable } from 'react-native';
 
 type Lead = {
   id: string;
@@ -29,6 +31,7 @@ type Lead = {
   active: string;
   stage: string;
   state: string;
+  filter: string;
 };
 
 interface AllLeadsScreenProps {
@@ -59,25 +62,29 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const [city, setCity] = useState('');
   const [enquiryType, setEnquiryType] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
-  const[userDetails,setUserDetails] = useState<string | null>(null);
-  const [menu,setMenu] = useState(['all', 'open', 'in progress', 'closed'])
+  const [userDetails, setUserDetails] = useState<string | null>(null);
+  const [menu, setMenu] = useState(['all', 'open', 'in progress', 'closed']);
+
+  const [showSalesmanSelectModal, setShowSalesmanSelectModal] = useState(false);
+  const [activeFilters, setActiveFilters] = useState([]);
+  const [role,setRole]=useState('salesman')
+  const base_url = 'http://192.168.1.20:8000/';
 
   const fetchLeads = async (status = selectedStatus) => {
     try {
       setLoading(true);
       setError(null);
       const token = await AsyncStorage.getItem('userToken');
+      const payload = new URLSearchParams({ stage: status }).toString();
 
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
       console.log(`status is ${status}`);
 
-      const API_URL = `http://192.168.1.20:8000/lead/get_leads?username=${username}&alias_name=${alias_name}&stage=${encodeURIComponent(
-        status,
-      )}`;
+      const API_URL = `${base_url}lead/get_leads`;
       const response = await fetch(API_URL, {
-        method: 'GET',
+        method: 'POST',
+        body: payload,
         headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
@@ -86,12 +93,12 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       const data = await response.json();
       console.log('Fetched Lead Data:', data);
 
-      if (!response.ok) {
+      if (data.code != 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      if (Array.isArray(data.leads)) {
-        const mappedLeads: Lead[] = data.leads.map((lead: any) => ({
+      if (Array.isArray(data.data)) {
+        const mappedLeads: Lead[] = data.data.map((lead: any) => ({
           id: String(lead.id),
           name: lead.name,
           email: lead.email || 'N/A',
@@ -105,6 +112,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           // active: lead.active,
           stage: lead.stage,
           state: lead.state,
+          progress: lead.progress,
         }));
         setLeads(mappedLeads);
       } else {
@@ -119,16 +127,15 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     }
   };
 
-  useEffect(()=> {
-    const fetchDetails = async ()=>{
-    const role = await AsyncStorage.getItem('role');
-    setUserDetails(role);
-    if(role == 'salesman')
-      setMenu(['in progress', 'closed'])
-    }
-    fetchDetails()
-    
-  })
+  useEffect(() => {
+    const fetchDetails = async () => {
+      const role = await AsyncStorage.getItem('role');
+      setUserDetails(role);
+      if (role == 'salesman') setMenu(['in progress', 'closed']);
+    };
+    // console.log('=================================================',userDetails)
+    fetchDetails();
+  });
 
   useFocusEffect(
     React.useCallback(() => {
@@ -167,27 +174,28 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
   const handleAssign = async (lead: Lead) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
 
-      const response = await fetch(
-        `http://192.168.1.20:8000/companyadmin/employees?username=${username}&alias_name=${alias_name}&salesman_list=true`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+      const payload = new URLSearchParams({
+        salesman_list:'true', 
+      }).toString();
+      console.log('Payload:', payload);
+      const response = await fetch(`${base_url}companyadmin/employees`, {
+        method: 'POST',
+        body: payload,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
-      const data = await response.json();
-      console.log(`status is ${response.status}`);
-      console.log('api data is ', data);
+      const result = await response.json();
+      console.log(`status is ${result.status}`);
+      console.log('api data is ', result);
 
-      if (!response.ok) throw new Error('Failed to fetch salesmen');
-      setSalesmen(data);
+      if (result.code != 200) throw new Error('Failed to fetch salesmen');
+      setSalesmen(result.data);
       setShowAssignModal(true);
       setSelectedLeadId(lead.id);
     } catch (error: any) {
@@ -206,28 +214,33 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
 
   const closeLeadOnServer = async (leadId: string) => {
     try {
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
+      const token = await AsyncStorage.getItem('userToken');
 
-      const API_URL = `http://192.168.1.20:8000/lead/lead/${leadId}?alias_name=${alias_name}&username=${encodeURIComponent(
-        username,
-      )}`;
+      const payload = new URLSearchParams({
+        lead_id: leadId.toString(),
+      }).toString();
 
-      const response = await fetch(API_URL, {
+      console.log('payload is  ', payload);
+      const api_url = base_url + 'lead/lead/';
+
+      const response = await fetch(api_url, {
         method: 'DELETE',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Bearer ${token}`,
         },
+        body: payload,
       });
 
       const data = await response.json();
       console.log('Close API Response:', data);
 
-      if (!response.ok) {
+      if (data.code !== 200) {
         throw new Error(data?.message || 'Failed to close lead');
       }
 
+      // Update UI after successful delete
       setLeads(prevLeads =>
         prevLeads.map(lead =>
           lead.id === leadId ? { ...lead, status: 'closed' } : lead,
@@ -248,32 +261,27 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
 
-      // const username = 'yogesh123@';
-      // const alias_name = 'ed';
+      const API_URL = `${base_url}lead/assign_lead?assiged_to`;
 
-      const API_URL = `http://192.168.1.20:8000/lead/assign_lead?assiged_to=${encodeURIComponent(
-        salesmanUsername,
-      )}&lead_id=${encodeURIComponent(leadId)}`;
-
-      console.log('Assign API URL:', API_URL);
-      // console.log('Salesman API response data:', JSON.stringify(data, null, 2));
-
+      const payload = new URLSearchParams({
+        lead_id: leadId,
+        assiged_to: salesmanUsername,
+      }).toString();
       const response = await fetch(API_URL, {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           Authorization: `Bearer ${token}`,
         },
+        body: payload,
       });
 
       const data = await response.json();
       console.log('Assign Lead API Response:', data);
 
-      if (!response.ok)
-        throw new Error(data.message || data.error);
-      if(data.error)
-        return Alert.alert(' Error', data.error);
+      if (!response.ok) throw new Error(data.message || data.error);
+      if (data.error) return Alert.alert(' Error', data.error);
       Alert.alert(' Success', 'Lead assigned successfully!');
       setShowAssignModal(false);
 
@@ -363,6 +371,9 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           {item.requirement}
         </Text>
         <Text style={styles.detailText}>
+          <Text style={{ fontWeight: '600' }}>Assigned To:</Text> {item.assigned_to}
+        </Text>
+         <Text style={styles.detailText}>
           <Text style={{ fontWeight: '600' }}>Status:</Text> {item.stage}
         </Text>
       </View>
@@ -378,51 +389,77 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
       </View>
 
       {/* DROPDOWN MENU   */}
+      {/* DROPDOWN MENU */}
       {menuForId === item.id && (
+        <>
+         {/* Invisible full-screen overlay for outside taps */}
+        <Pressable
+         onPress={() => setMenuForId(null)}
+         style={StyleSheet.absoluteFillObject}
+         />
         <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => {
-              setMenuForId(null);
-              navigation.navigate('EditLeadScreen', { lead: item });
-            }}
-          >
-            <Text style={styles.menuItemText}>Edit</Text>
-          </TouchableOpacity>
+          {userDetails === 'salesman' ? (
+            <>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuForId(null);
+                  navigation.navigate('PORaisedScreen', { lead: item });
+                }}
+              >
+                <Text style={styles.menuItemText}>PO Raised</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => {
-              setMenuForId(null);
-              Alert.alert('Delete Lead', `Are you sure you want to delete`, [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Yes, Close',
-                  onPress: () => closeLeadOnServer(item.id),
-                },
-              ]);
-            }}
-          >
-            <Text style={styles.menuItemText}>Delete</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuForId(null);
+                  navigation.navigate('LeadStatusScreen', { lead: item });
+                }}
+              >
+                <Text style={styles.menuItemText}>Status</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuForId(null);
+                  navigation.navigate('EditLeadScreen', { lead: item });
+                }}
+              >
+                <Text style={styles.menuItemText}>Edit</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => handleAssign(item)}
-          >
-            <Text style={styles.menuItemText}>Assign</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuForId(null);
+                  Alert.alert('Delete Lead', `Are you sure you want to close`, [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Yes, Close',
+                      onPress: () => closeLeadOnServer(item.id),
+                    },
+                  ]);
+                }}
+              >
+                <Text style={styles.menuItemText}>Close</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => handleClose(item)}
-          >
-            <Text style={[styles.menuItemText, { color: '#ef4444' }]}>
-              Close
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleAssign(item)}
+              >
+                <Text style={styles.menuItemText}>Assign</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
+        </>
       )}
+       
     </LinearGradient>
   );
 
@@ -452,31 +489,36 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     try {
       setLoading(true);
       setError(null);
-       const token = await AsyncStorage.getItem('userToken'); 
+      const token = await AsyncStorage.getItem('userToken');
 
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
+      // const username = 'yogesh123@';
+      // const alias_name = 'ed';
 
-      const params = new URLSearchParams({
-        username,
-        alias_name,
+      const formData = new URLSearchParams({
+        
         stage: leadStatus || '',
         state: state || '',
         city: city || '',
         Enquiry_type: enquiryType || '',
         assigned_to: assignedTo || '',
-      });
+      }).toString();
 
-      const API_URL = `http://192.168.1.20:8000/lead/filter_leads?${params.toString()}`;
+      const API_URL = `${base_url}lead/filter_leads`;
 
       console.log('Filter API URL:', API_URL);
+
+      // const formBody = Object.keys(formData)
+      // .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(formData[key]))
+      // .join('&');
 
       const response = await fetch(API_URL, {
         method: 'GET',
         headers: {
-          Accept: 'application/json',
-           Authorization:`Bearer ${token}` 
+          // Accept: 'application/json',
+          'Content-Type':'application/x-www-form-urlencoded', 
+          Authorization: `Bearer ${token}`,
         },
+        body:formData,
       });
 
       const data = await response.json();
@@ -505,7 +547,20 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         console.warn('Unexpected API format:', data);
         setLeads([]);
       }
+       
+      const filters = [];
 
+      // if (leadStatus && leadStatus !== 'all')
+      //   filters.push({ label: ` ${leadStatus}`, key: 'leadStatus' });
+      if (state) filters.push({ label: ` ${state}`, key: 'state' });
+      if (city) filters.push({ label: ` ${city}`, key: 'city' });
+      if (enquiryType)
+        filters.push({ label: ` ${enquiryType}`, key: 'enquiryType' });
+      if (assignedTo)
+        filters.push({ label: ` ${assignedTo}`, key: 'assignedTo' });
+
+      setActiveFilters(filters);
+      setShowFilterModal(false); // close modal
       setShowFilterModal(false);
     } catch (err: any) {
       console.error('Filter API Error:', err);
@@ -515,17 +570,49 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
     }
   };
 
+  const fetchSalesmenList = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+       
+       console.log("list of salesman url",base_url)
+       const payload=new URLSearchParams({salesman_list:'true'}).toString();
+      const response = await fetch(
+        ` ${base_url}companyadmin/employees`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type':'application/x-www-form-urlencoded',
+            Authorization: `Bearer ${token}`,
+          },
+          body:payload,
+        },
+      );
+      console.log("list of salesman url",base_url)
+      const data = await response.json();
+      console.log('selesman list   ', data);
+      if (!response.ok) throw new Error('Failed to fetch salesmen');
+      setSalesmen(data);
+    } catch (error) {
+      console.error('Salesman fetch error:', error);
+      Alert.alert('Error', 'Unable to fetch salesman list.');
+    }
+  };
+
   return (
     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
+      {/* Top Bar in showallLeadscreen like add lead ,filter */}
+        
+       <View style={styles.topBar}>
+        {userDetails  && userDetails !=='salesman' &&( 
+        
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('AddLeadScreen')}
         >
           <Text style={styles.addButtonText}>＋ Add Lead</Text>
         </TouchableOpacity>
-
+          )}
         <TouchableOpacity
           style={styles.filterButtonTop}
           onPress={() => setShowFilterModal(true)}
@@ -534,7 +621,7 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.header}>Leads</Text>
+ 
 
       {/* Status Filter */}
       <View style={styles.filterContainer}>
@@ -562,14 +649,29 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Search */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by Name, Company, or Phone..."
-        placeholderTextColor="#9ca3af"
-        value={search}
-        onChangeText={setSearch}
-      />
+      {/* Active Filter Chips */}
+      {activeFilters.length > 0 && (
+        <View
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexDirection: 'row', marginBottom: 10 }}
+        >
+          {activeFilters.map((filter, index) => (
+            <View key={index} style={styles.chip}>
+              <Text style={styles.chipText}>{filter.label}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setActiveFilters(prev =>
+                    prev.filter(f => f.key !== filter.key),
+                  )
+                }
+              >
+                <Text style={styles.chipClose}> × </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
 
       <FlatList
         data={filteredLeads}
@@ -648,18 +750,80 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
           </View>
         </View>
       )}
+      {showSalesmanSelectModal && (
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: '#1e293b' }]}>
+            <Text style={styles.modalHeader}>Select Salesman</Text>
 
-      {/* fitlet button form    +==================================================== */}
+            {salesmen.length === 0 ? (
+              <Text
+                style={{ color: '#94a3b8', textAlign: 'center', marginTop: 20 }}
+              >
+                No salesmen found
+              </Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {salesmen.map((salesman: any) => (
+                  <TouchableOpacity
+                    key={salesman.id}
+                    style={styles.radioOption}
+                    onPress={() => {
+                      setAssignedTo(salesman.username);
+                      setShowSalesmanSelectModal(false);
+                      Alert.alert('Selected', `Assigned to ${salesman.name}`);
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        assignedTo === salesman.username &&
+                          styles.radioOuterSelected,
+                      ]}
+                    >
+                      {assignedTo === salesman.username && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
+                    <Text style={[styles.radioLabel, { color: '#fff' }]}>
+                      {salesman.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                { backgroundColor: '#475569', marginTop: 20 },
+              ]}
+              onPress={() => setShowSalesmanSelectModal(false)}
+            >
+              <Text
+                style={{
+                  color: '#fff',
+                  textAlign: 'center',
+                  fontWeight: '600',
+                }}
+              >
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* fitler button form    +==================================================== */}
       {showFilterModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalHeader}>Filters</Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Lead Status */}
+              {/* Lead Status ------------------------------filter forms*/}
               <Text style={styles.label}>Lead Status</Text>
               <View style={styles.radioGroup}>
-                { menu.map(status => (
+                {menu.map(status => (
                   <TouchableOpacity
                     key={status}
                     style={styles.radioOption}
@@ -713,14 +877,24 @@ const AllLeadsScreen: React.FC<AllLeadsScreenProps> = ({ navigation }) => {
               />
 
               <Text style={styles.label}>Assigned To</Text>
-              <TextInput
-                style={styles.inputBox}
-                placeholder="Enter name of assignee"
-                placeholderTextColor="#94a3b8"
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                containerStyle={styles.dropdownContainer}
+                data={salesmen.map((s: any) => ({
+                  label: s.name,
+                  value: s.username,
+                }))}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Salesman"
                 value={assignedTo}
-                onChangeText={setAssignedTo}
+                onFocus={async () => {
+                  if (salesmen.length === 0) await fetchSalesmenList();
+                }}
+                onChange={item => setAssignedTo(item.value)}
               />
-
               {/*filter  ======================================= Buttons */}
               <TouchableOpacity
                 style={styles.applyButton}
@@ -1073,14 +1247,58 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   inputBox: {
-  backgroundColor: '#0f172a',
-  color: '#fff',
-  borderRadius: 10,
-  paddingHorizontal: 12,
-  paddingVertical: 10,
-  marginBottom: 12,
-  borderWidth: 1,
-  borderColor: '#1e293b',
-},
-
+    backgroundColor: '#0f172a',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  dropdown: {
+    backgroundColor: '#0f172a',
+    borderColor: '#1e293b',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 12,
+    height: 50,
+  },
+  placeholderStyle: {
+    color: '#94a3b8',
+    fontSize: 14,
+  },
+  selectedTextStyle: {
+    color: '#e8dbdbff',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  dropdownContainer: {
+    backgroundColor: '#b1bac9ff',
+    borderColor: '#1e293b',
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2d3748',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginRight: 6,
+    height: 40,
+  },
+  chipText: {
+    color: '#fff',
+    fontSize: 11,
+  },
+  chipClose: {
+    color: '#f87171',
+    marginLeft: 4,
+    fontSize: 22,
+    fontWeight: '700',
+  },
 });

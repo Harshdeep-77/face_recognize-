@@ -14,7 +14,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const progressOption=["hot","warm","cold"];
+const progressOption=["hot","warm","cold","po raised"];
 const stageOption=["open","closed","in progress"]
 
 const EditLeadScreen = () => {
@@ -52,24 +52,26 @@ const EditLeadScreen = () => {
            const token = await AsyncStorage.getItem('userToken'); 
 
       setLoading(true);
-       
-
+       console.log("form data is ",formData)
+      const formBody = Object.keys(formData)
+      .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(formData[key]))
+      .join('&');
       // Convert formData to query params
-      const query = new URLSearchParams(formData).toString();
-      const API_URL = `http://192.168.1.20:8000/lead/update_lead?${query}`;
+      // const query = new URLSearchParams(formData).toString();
+      const API_URL = `http://192.168.1.20:8000/lead/update_lead`;
 
-      console.log('Update API URL:', API_URL);
-      console.log('Edit screen lead data:', route.params?.lead);
+      console.log('Update API URL:', formBody);
+       
 
 
       const response = await fetch(API_URL, {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
-          ,
+           'Content-Type':'application/x-www-form-urlencoded',
           Authorization:`Bearer ${token}`
         },
+        body:formBody
       });
 
       const data = await response.json();

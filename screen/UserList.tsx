@@ -12,7 +12,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 // Define a TypeScript type for your user
 type User = {
   id: string;
@@ -27,6 +26,7 @@ interface UserListScreenProps {
 }
 
 const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
+  const base_url = 'http://192.168.1.20:8000/';
   // const { usernames } = route.params;
   const [users, setUsers] = useState<User[]>([]); //  empty array in strating
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,29 +36,31 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
     try {
       setLoading(true);
       setError(null);
-       const token = await AsyncStorage.getItem('userToken'); 
+      const token = await AsyncStorage.getItem('userToken');
 
-      const username = 'yogesh123@';
-      const alias_name = 'ed';
-
-      const url = `http://192.168.1.20:8000/companyadmin/employees?username=${username}&alias_name=${alias_name}`;
+      const url = `${base_url}companyadmin/employees`;
 
       const response = await fetch(url, {
-        method: 'GET',
-        headers: { Accept: 'application/json',Authorization:`Bearer ${token}` },
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type':' application/x-www-form-urlencoded',
+          Authorization: `Bearer ${token}`,
+         },
+         body:'salesman_list=false',
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data = await response.json();
-      // console.log('Fetched Employee Data:', data);
+      const result= await response.json();
+      console.log('Fetched Employee Data:', result.data);
 
-      if (Array.isArray(data)) {
-        setUsers(data);
-      } else if (data.employees) {
-        setUsers(data.employees);
+      if (Array.isArray(result.data)) {
+        setUsers(result);
+      } else if (result.data.employees) {
+        setUsers(result.data.employees);
       } else {
         console.warn('Unexpected API format:', data);
       }
@@ -74,15 +76,15 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
   //   fetchEmployeeData();
   // }, []);
   useFocusEffect(
-  React.useCallback(() => {
-    fetchEmployeeData();
-  }, [])
-);
+    React.useCallback(() => {
+      fetchEmployeeData();
+    }, []),
+  );
 
-  const deleteUser = async (username:string ) => {
+  const deleteUser = async (username: string) => {
     const companyAlias = 'ed'; // Replace with actual company alias if needed
     try {
-              const token = await AsyncStorage.getItem('userToken'); 
+      const token = await AsyncStorage.getItem('userToken');
 
       Alert.alert(
         'Confirm Delete',
@@ -93,21 +95,29 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
             text: 'Delete',
             style: 'destructive',
             onPress: async () => {
-              console.log('Deleting user:', username, 'from company:', companyAlias);
-              
+              console.log(
+                'Deleting user:',
+                username,
+                'from company:',
+                companyAlias,
+              );
+
               const response = await fetch(
                 `http://192.168.1.20:8000/companyadmin/employee?Company_alias=${companyAlias}&username=${username}`,
                 {
                   method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' , Authorization:`Bearer ${token}` },
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
                 },
               );
               console.log('Delete response status:', response.status);
               console.log('Delete response ok:', response.json());
-                  
+
               if (response.ok) {
                 Alert.alert('Success', `${username} deleted successfully!`);
-                
+
                 setUsers(prev => prev.filter(u => u.username !== username));
               } else {
                 const errorText = await response.text();
@@ -154,7 +164,6 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
       <View>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.role}>{item.role}</Text>
-        
       </View>
       <TouchableOpacity
         style={[styles.button, { backgroundColor: '#10b981' }]}
@@ -162,7 +171,7 @@ const UserListScreen: React.FC<UserListScreenProps> = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>View</Text>
       </TouchableOpacity>
-       <TouchableOpacity
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: '#ef4444' }]}
         onPress={() => deleteUser(item.username)}
       >
@@ -219,150 +228,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
   },
 });
-
-// import React, { useState, useEffect } from 'react';
-// import {
-//   View,
-//   Text,
-//   FlatList,
-//   TouchableOpacity,
-//   StyleSheet,
-//   Alert,
-// } from 'react-native';
-// import LinearGradient from 'react-native-linear-gradient';
-
-// export default function UserListScreen({ navigation }) {
-//   const [error, setError] = useState(null);
-//   const [loding, setLoading] = useState(true);
-//   const [users, setUsers] = useState([
-//     { id: '1', name: 'Harsh Deep', role: 'Frontend Developer' },
-//     { id: '2', name: 'Aryan Verma', role: 'Backend Engineer' },
-//     { id: '3', name: 'Diya Patel', role: 'UI/UX Designer' },
-//     { id: '4', name: 'Rohit Sharma', role: 'React Native Dev' },
-//     { id: '5', name: 'Priya Singh', role: 'QA Tester' },
-//     { id: '6', name: 'Karan Gupta', role: 'Data Analyst' },
-//     { id: '7', name: 'Sneha Mehta', role: 'Project Manager' },
-//     { id: '8', name: 'Vikram Rao', role: 'DevOps Engineer' },
-//     { id: '9', name: 'Ananya Das', role: 'Software Intern' },
-//     { id: '10', name: 'Ritesh Kumar', role: 'AI Engineer' },
-//   ]);
-
-//   const handleViewProfile = user => {
-//     navigation.navigate('UserProfile', { user });
-//   };
-
-//   //handle api data and fatch employee data from api
-
-//   const fetchEmployeeData = async () => {
-//     try {
-//       const response = await fetch('http:// ');
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! Status: ${response.status}`);
-//       }
-//       const data: User[] = await response.json();
-//       console.log('Employee Data:', data);
-//     } catch (err: any) {
-//       console.error(err);
-//       setError(err.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-//   useEffect(() => {
-//     fetchEmployeeData();
-//   }, []);
-
-//   const renderItem = ({ item }: { item: User }) => (
-//     <View style={styles.card}>
-//       <View style={{ flex: 1 }}>
-//         <Text style={styles.name}>{item.name}</Text>
-//         <Text style={styles.role}>Role: {item.role}</Text>
-//       </View>
-//       <TouchableOpacity style={styles.button} onPress={() => handleViewProfile(item)}>
-//         <Text style={styles.buttonText}>View Profile</Text>
-//       </TouchableOpacity>
-//     </View>
-//   );
-
-//   if (loading) {
-//     return (
-//       <View style={styles.center}>
-//         <ActivityIndicator size="large" color="#007AFF" />
-//         <Text>Loading users...</Text>
-//       </View>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <View style={styles.center}>
-//         <Text style={{ color: 'red' }}>Error: {error}</Text>
-//         <TouchableOpacity onPress={fetchEmployeeData}>
-//           <Text style={{ marginTop: 10, color: 'blue' }}>Retry</Text>
-//         </TouchableOpacity>
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
-//       <FlatList
-//         data={users}
-//         keyExtractor={item => item.id}
-//         renderItem={({ item }) => (
-//           <LinearGradient colors={['#1e293b', '#334155']} style={styles.card}>
-//             <View>
-//               <Text style={styles.name}>{item.name}</Text>
-//               <Text style={styles.role}>{item.role}</Text>
-//             </View>
-//             <View style={styles.actions}>
-//               <TouchableOpacity
-//                 style={[styles.button, { backgroundColor: '#10b981' }]}
-//                 onPress={() => handleViewProfile(item)}
-//               >
-//                 <Text style={styles.buttonText}>View</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </LinearGradient>
-//         )}
-//         contentContainerStyle={{ paddingBottom: 20 }}
-//       />
-//     </LinearGradient>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, padding: 20 },
-//   header: {
-//     color: '#fff',
-//     fontSize: 26,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//     textAlign: 'center',
-//   },
-//   card: {
-//     borderRadius: 14,
-//     padding: 15,
-//     marginBottom: 12,
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     shadowColor: '#000',
-//     shadowOpacity: 0.2,
-//     shadowRadius: 5,
-//     elevation: 5,
-//   },
-//   name: { color: '#fff', fontSize: 18, fontWeight: '600' },
-//   role: { color: '#94a3b8', fontSize: 14, marginTop: 4 },
-//   actions: { flexDirection: 'row', gap: 8 },
-//   button: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 8 },
-//   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-//   backButton: {
-//     backgroundColor: '#334155',
-//     padding: 12,
-//     borderRadius: 10,
-//     marginTop: 20,
-//     alignItems: 'center',
-//   },
-//   backButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-// });
+ 
